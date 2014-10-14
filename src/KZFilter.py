@@ -24,7 +24,7 @@
 # Juan Zubillaga, 20000324
 # Jesus Fernandez, 20000724
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 import pyclimate.LinearFilter
 
 import sys,math
@@ -70,7 +70,7 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
     # Get the filter coefficients
     self.coefs=self.getcoefs()
     if not lowpass:
-      allpass=Numeric.zeros((self.length,),Numeric.Float64)
+      allpass=Numeric.zeros((self.length,),Numeric.float64)
       allpass[self.length/2]=1.
       self.coefs[:]=allpass[:]-self.coefs[:]
     # Position in the buffer to store the input datafield
@@ -80,8 +80,8 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
 
   def getcoefs(self):
     "Coefficients of the filter"
-    oldcoef=Numeric.zeros(self.length,Numeric.Float64)
-    newcoef=Numeric.zeros(self.length,Numeric.Float64)
+    oldcoef=Numeric.zeros(self.length,Numeric.float64)
+    newcoef=Numeric.zeros(self.length,Numeric.float64)
     oldcoef[0]=1
     lfiltro=1
     for i1 in range(self.iterations):   # veces la media movil
@@ -121,7 +121,7 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
 if __name__=="__main__":
   def testequality(dataa,datab,label=""):
     print "Testing equality:"+label
-    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.Float64))
+    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.float64))
     residual2=(dataa-datab)*(dataa-datab)
     while len(residual2.shape)>1:
       residual2=add.reduce(residual2)
@@ -155,7 +155,7 @@ if __name__=="__main__":
 
   # BIG data with multiple dimensions.......
   records=25
-  data=ones((records,5,6,10,10,2),Numeric.Float64)
+  data=ones((records,5,6,10,10,2),Numeric.float64)
   kzf=KZFilter(5,3)
   irec=0
   while irec<records:

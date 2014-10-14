@@ -33,7 +33,7 @@
 
 # jff20010621
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 import pyclimate.tools
 import pyclimate.mvarstatools
 import pyclimate.svdeofs
@@ -44,8 +44,8 @@ import math, os
 ptools = pyclimate.tools
 pmvstools = pyclimate.mvarstatools
 pex = pyclimate.pyclimateexcpt
-mm = Numeric.matrixmultiply
-NA = Numeric.NewAxis
+mm = Numeric.dot
+NA = Numeric.newaxis
 
 def get_weights(distarray,weightexp):
   """Returns the weight values for each analog 

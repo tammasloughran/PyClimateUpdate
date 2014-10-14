@@ -21,7 +21,7 @@
 # 
 
 import string
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 
 def _getnewlist():
 	return []

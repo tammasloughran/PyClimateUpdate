@@ -28,7 +28,7 @@
 # Meteorology, Lanczos filtering in one and two dimensions, volume 18, 
 # pages=1016-1022
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 import pyclimate.LinearFilter
 
 import sys,math
@@ -107,7 +107,7 @@ class LanczosFilter(pyclimate.LinearFilter.LinearFilter):
     "Filter coefficients"
     n=self.length/2
     thepi=math.acos(-1.)
-    ocoefs=Numeric.zeros(self.length,Numeric.Float64)
+    ocoefs=Numeric.zeros(self.length,Numeric.float64)
     # This is pretty singular...
     # sinc(0)=1!!; sin(2fx)/x = 2f!!
     k=0
@@ -135,7 +135,7 @@ class LanczosFilter(pyclimate.LinearFilter.LinearFilter):
 if __name__=="__main__":
   def testequality(dataa,datab,label=""):
     print "Testing equality:"+label
-    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.Float64))
+    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.float64))
     residual2=(dataa-datab)*(dataa-datab)
     while len(residual2.shape)>1:
       residual2=add.reduce(residual2)

@@ -37,15 +37,15 @@ import pyclimate.tools
 import pyclimate.mctest
 import pyclimate.NHArray
 import pyclimate.pyclimateexcpt
-import numpy.oldnumeric.linear_algebra as LinearAlgebra 
-import numpy.oldnumeric as Numeric
-import numpy.oldnumeric.random_array as RandomArray
+import numpy.linalg as LinearAlgebra 
+import numpy as Numeric
+import numpy.random as RandomArray
 
 ptools = pyclimate.tools
 mtools = pyclimate.mvarstatools
-mm = Numeric.matrixmultiply
-SVD = LinearAlgebra.singular_value_decomposition
-NA = Numeric.NewAxis
+mm = Numeric.dot
+SVD = LinearAlgebra.svd
+NA = Numeric.newaxis
 
 class BPCCA:
   MCTESTMASK_NBINS_DIVISOR = 10

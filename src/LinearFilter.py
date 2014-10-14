@@ -24,7 +24,7 @@
 # Juan Zubillaga, 20000324
 # Jesus Fernandez, 20000724
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 
 class LinearFilter:
   """Parent class to implementing linear filtering
@@ -46,7 +46,7 @@ class LinearFilter:
     self.multicoefs=None
     self.buffer=None
 
-  def getfiltered(self,ifield,tcode=Numeric.Float64):
+  def getfiltered(self,ifield,tcode=Numeric.float64):
     """Get a filtered record out of a raw one
 
     This method returns 'None' while not enough records have been passed to
@@ -72,7 +72,7 @@ class LinearFilter:
       self.buffer=Numeric.zeros((self.length,)+ifield.shape,tcode)
       # And create a Numeric array for the
       # coefficients with the needed shape
-      self.multicoefs=Numeric.zeros(self.buffer.shape,Numeric.Float64)
+      self.multicoefs=Numeric.zeros(self.buffer.shape,Numeric.float64)
       for irec in xrange(self.length):
         self.multicoefs[irec]=self.multicoefs[irec]+self.coefs[irec]
     #########################################################

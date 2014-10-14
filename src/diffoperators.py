@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 import math,sys
 
 def deg2rad(d):
@@ -77,8 +77,8 @@ class HGRADIENT:
 				radius of the Earth 6.37e6)
 		"""
 		# Centered differences for each of the fields
-		u=Numeric.zeros(phi.shape,Numeric.Float64)
-		v=Numeric.zeros(phi.shape,Numeric.Float64)
+		u=Numeric.zeros(phi.shape,Numeric.float64)
+		v=Numeric.zeros(phi.shape,Numeric.float64)
 		# Longitudinal directions
 		u[...,1:-1]=phi[...,2:]-phi[...,:-2]
 		if not self.PBlon:
@@ -95,7 +95,7 @@ class HGRADIENT:
 		u=u/(2.*self.dlon*R)
 		v=v/(2.*self.dlat*R)
 		# Now, divide u by cos(lat)
-		u=u/self.clats[:,Numeric.NewAxis]
+		u=u/self.clats[:,Numeric.newaxis]
 		return (u,v)
 
 
@@ -152,10 +152,10 @@ class HDIVERGENCE:
 				radius of the Earth 6.37e6)
 		"""
 		# Multiply each row of the v component by cosine(lat)
-		dummy=Numeric.array(v)*self.clats[:,Numeric.NewAxis]
+		dummy=Numeric.array(v)*self.clats[:,Numeric.newaxis]
 		# Centered differences for each of the fields
-		cdifu=Numeric.zeros(u.shape,Numeric.Float64)
-		cdifv=Numeric.zeros(v.shape,Numeric.Float64)
+		cdifu=Numeric.zeros(u.shape,Numeric.float64)
+		cdifv=Numeric.zeros(v.shape,Numeric.float64)
 		# Longitudinal directions
 		cdifu[...,1:-1]=u[...,2:]-u[...,:-2]
 		if not self.PBlon:
@@ -173,7 +173,7 @@ class HDIVERGENCE:
 		cdifv=cdifv/2./self.dlat
 		# Now, divide by R*cos(lat)
 		dummy=cdifu+cdifv
-		dummy=dummy/self.clats[:,Numeric.NewAxis]
+		dummy=dummy/self.clats[:,Numeric.newaxis]
 		dummy=dummy/R
 		return dummy
 
@@ -229,10 +229,10 @@ class VCURL:
 				radius of the Earth 6.37e6)
 		"""
 		# Multiply each row of the U component by cosine(lat)
-		dummy=Numeric.array(u)*self.clats[:,Numeric.NewAxis]
+		dummy=Numeric.array(u)*self.clats[:,Numeric.newaxis]
 		# Centered differences for each of the fields
-		cdifu=Numeric.zeros(u.shape,Numeric.Float64)
-		cdifv=Numeric.zeros(v.shape,Numeric.Float64)
+		cdifu=Numeric.zeros(u.shape,Numeric.float64)
+		cdifv=Numeric.zeros(v.shape,Numeric.float64)
 		# Longitudinal directions
 		cdifv[...,1:-1]=v[...,2:]-v[...,:-2]
 		if not self.PBlon:
@@ -250,6 +250,6 @@ class VCURL:
 		cdifv=cdifv/2./self.dlon
 		# Now, divide by R*cos(lat)
 		dummy=cdifv-cdifu
-		dummy=dummy/self.clats[:,Numeric.NewAxis]
+		dummy=dummy/self.clats[:,Numeric.newaxis]
 		dummy=dummy/R
 		return dummy

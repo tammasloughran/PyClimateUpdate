@@ -24,7 +24,7 @@ asessing statistical significance.
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 import pyclimate.anumhist
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 
 class NHArray:
   "Numeric Histogram Array class"

@@ -21,7 +21,7 @@
 #
 # Jon Saenz, 2002
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 
 ###########################################################
 # Some constants of general use

@@ -23,7 +23,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 import pyclimate.pyclimateexcpt
 
 class t_test_difference_of_means:

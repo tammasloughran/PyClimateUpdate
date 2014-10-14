@@ -4,10 +4,10 @@
 # Handle Numeric arrays with missing values
 # Jon Saenz, 20000410
 # Jesus Fernandez, 20001116
-import numpy.oldnumeric as Numeric
+import numpy as Numeric
 
 class MaskedArray:
-	def __init__(self, data, miss, tol=0.0, tcode=Numeric.Float64):
+	def __init__(self, data, miss, tol=0.0, tcode=Numeric.float64):
 		self.data=Numeric.array(data,tcode)
 		self.missing=miss
 		himask = Numeric.greater(self.data, miss + tol)
@@ -34,7 +34,7 @@ class MaskedArray:
 		sqdata=Numeric.sqrt(self.data * valids) + self.missing*logical_not(valids)
 		return MaskedArray(sqdata, self.missing)
 
-	def toarray(self, tcode=Numeric.Float64):
+	def toarray(self, tcode=Numeric.float64):
 		return self.data.astype(tcode)
 
 	def __add__(self,marr):

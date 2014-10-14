@@ -27,15 +27,15 @@
 #
 # Jon Saenz, Jesus Fernandez, June 2001, while at GKSS
 
-import numpy.oldnumeric as Numeric
-import numpy.oldnumeric.linear_algebra as LinearAlgebra
+import numpy as Numeric
+import numpy.linalg as LinearAlgebra
 import pyclimate.tools
 import pyclimate.mctest
 import pyclimate.pyclimateexcpt
 import pyclimate.mvarstatools
 
 LA=LinearAlgebra
-NA=Numeric.NewAxis
+NA=Numeric.newaxis
 ptools=pyclimate.tools
 pmvstools=pyclimate.mvarstatools
 mctest=pyclimate.mctest
@@ -43,7 +43,7 @@ pex=pyclimate.pyclimateexcpt
 
 class HDSEOFs:
   "Base class holding the common operations for both HDSEOF constructors"
-  def Eigenvalues(self,svdsolver=LA.singular_value_decomposition):
+  def Eigenvalues(self,svdsolver=LA.svd):
     "Eigenvalues of the covariance (correlation) matrix"
     if not self.ready:
       self.E,self.L,c=svdsolver(self.S)
@@ -54,13 +54,13 @@ class HDSEOFs:
     if not self.ready:
       c=self.Eigenvalues()
 
-  def VarianceFraction(self,svdfunc=LA.singular_value_decomposition):
+  def VarianceFraction(self,svdfunc=LA.svd):
     "Total variance fraction accounted for each principal mode"
     l=self.Eigenvalues(svdfunc)
     return l/Numeric.add.reduce(l)
 
   def Eigenvectors(self,Neofs,pcscaling=0,
-                   svdsolver=LA.singular_value_decomposition):
+                   svdsolver=LA.svd):
     """EOFs, the eigenvectors of the covariance (correlation) matrix
 
     Arguments:
@@ -154,7 +154,7 @@ class SIHDSEOFs(HDSEOFs):
     Optional arguments:
 
       'tcode' -- Numeric typecode for the internal computations. 
-                 Defaults to 'Float64'.
+                 Defaults to 'float64'.
 
       'therecords' -- List of records to be taken. Defaults to the 
                       whole data set.
@@ -181,7 +181,7 @@ class SIHDSEOFs(HDSEOFs):
       Numeric.add(self.average,field,self.average)
       Numeric.add(self.S,Numeric.multiply.outer(field,field),self.S)
     ##################################################
-    # Force the use of Float64 in S
+    # Force the use of float64 in S
     #################################################
     Numeric.multiply(self.average,1.0/self.records,self.average).astype(self.typecode)
     Numeric.multiply(self.S,1.0/float(self.records),self.S)
@@ -209,7 +209,7 @@ class DIHDSEOFs(HDSEOFs):
     Optional arguments:
 
       'tcode' -- Numeric typecode for the internal computations. 
-                 Defaults to 'Float64'.
+                 Defaults to 'float64'.
 
       'therecords' -- List of records to be taken. Defaults to the 
                       whole data set.
@@ -239,7 +239,7 @@ class DIHDSEOFs(HDSEOFs):
       residual=Numeric.ravel(iterator[i])-self.average
       Numeric.add(self.S,Numeric.multiply.outer(residual,residual),self.S)
     ##################################################
-    # Force the use of Float64 in S
+    # Force the use of float64 in S
     #################################################
     Numeric.multiply(self.S,1./float(self.records),self.S)
     if self.corrmatrix:

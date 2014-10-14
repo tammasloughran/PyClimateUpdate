@@ -34,8 +34,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
-import numpy.oldnumeric as Numeric
-import numpy.oldnumeric.linear_algebra as LinearAlgebra
+import numpy as Numeric
+import numpy.linalg as LinearAlgebra
 import sys
 import pyclimate.pyclimateexcpt
 import pyclimate.tools
@@ -61,7 +61,7 @@ def covariancematrix(X,Y):
 	N=float(len(X))
 	cX=center(X)
 	cY=center(Y)
-	covmat=Numeric.matrixmultiply(Numeric.transpose(cX),cY)/N
+	covmat=Numeric.dot(Numeric.transpose(cX),cY)/N
 	return covmat
 
 def correlationmatrix(X,Y):
@@ -71,7 +71,7 @@ def correlationmatrix(X,Y):
 	N=float(len(X))
 	cX=standardize(X)
 	cY=standardize(Y)
-	corrmat=Numeric.matrixmultiply(Numeric.transpose(cX),cY)/N
+	corrmat=Numeric.dot(Numeric.transpose(cX),cY)/N
 	return corrmat
 
 def congruence(p1,p2):
@@ -109,13 +109,13 @@ def detrend(dataset,tvalues,order=1):
   Of course, when removing a polynomial of the mentioned type, the
   mean is also removed !!!
 	"""
-	T=Numeric.ones((len(dataset),)+(order+1,),Numeric.Float64)
+	T=Numeric.ones((len(dataset),)+(order+1,),Numeric.float64)
 	for iord in xrange(1,len(T[0])):
 		T[:,iord]=T[:,iord-1]*tvalues
-	V=Numeric.matrixmultiply(Numeric.transpose(T),T)
-	Tx=Numeric.matrixmultiply(Numeric.transpose(T),dataset)
-	A=Numeric.matrixmultiply(LinearAlgebra.inverse(V),Tx)
-	trendterm=Numeric.matrixmultiply(T,A)
+	V=Numeric.dot(Numeric.transpose(T),T)
+	Tx=Numeric.dot(Numeric.transpose(T),dataset)
+	A=Numeric.dot(LinearAlgebra.inv(V),Tx)
+	trendterm=Numeric.dot(T,A)
 	residual=dataset-trendterm
 	return residual,A
 

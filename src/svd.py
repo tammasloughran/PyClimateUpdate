@@ -21,9 +21,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy.oldnumeric as Numeric
-import Scientific.Statistics
-import numpy.oldnumeric.linear_algebra as LinearAlgebra
+import numpy as Numeric
+import numpy.linalg as LinearAlgebra
 import sys
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt
@@ -63,7 +62,7 @@ def svd(sfield,zfield):
 	if not zfield2d:
 		zfield, oldzshape = tools.unshape(zfield)
 	csz=mt.covariancematrix(sfield,zfield)
-	P,sigma,Qt=LinearAlgebra.singular_value_decomposition(csz)
+	P,sigma,Qt=LinearAlgebra.svd(csz)
 	Q=Numeric.transpose(Qt)
 	# Returns:
 	# P -> Left singular vectors
@@ -131,7 +130,7 @@ def getcoefs(data,svectors):
 
     'svectors' -- Singular vectors (left or right) as returned by 'svd()'
   """
-	coefs=Numeric.matrixmultiply(tools.unshape(data)[0], 
+	coefs=Numeric.dot(tools.unshape(data)[0], 
 		tools.unshape(svectors,0)[0])
 	return coefs
 
@@ -152,7 +151,7 @@ def homogeneousmaps(data,svectors):
 	data, oldshape = tools.unshape(data)
 	cdata=mt.standardize(data)
 	ccoefs=mt.standardize(coefs)
-	themaps=Numeric.matrixmultiply(Numeric.transpose(cdata),ccoefs)/len(ccoefs)
+	themaps=Numeric.dot(Numeric.transpose(cdata),ccoefs)/len(ccoefs)
 	themaps = tools.deunshape(themaps, oldshape[1:] + ccoefs.shape[-1:])
 	return themaps
 
@@ -171,7 +170,7 @@ def heterogeneousmaps(xdata,ycoefs):
 	xdata, oldshape = tools.unshape(xdata)
 	cdata=mt.standardize(xdata)
 	ccoefs=mt.standardize(ycoefs)
-	themaps=Numeric.matrixmultiply(Numeric.transpose(cdata),ccoefs)/len(cdata)
+	themaps=Numeric.dot(Numeric.transpose(cdata),ccoefs)/len(cdata)
 	themaps = tools.deunshape(themaps, oldshape[1:] + ccoefs.shape[-1:])
 	return themaps
 
@@ -201,8 +200,8 @@ def makemctest(Umaster,Vmaster,ldata,rdata,itimes,ielems):
 	vectors=Umaster.shape[-1]
 	if Vmaster.shape[-1]!=vectors:
 		raise excpt.SVDSubsetLengthException(vectors,len(Vmaster[0]))
-	uccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.Float64)
-	vccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.Float64)
+	uccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.float64)
+	vccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.float64)
         for itime in xrange(itimes):
                 lsubset,rsubset=_getsubset(ldata,rdata,ielems)
                 U,sigma,V=svd(lsubset,rsubset)

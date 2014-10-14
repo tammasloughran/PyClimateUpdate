@@ -29,19 +29,18 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy.oldnumeric as Numeric
-import numpy.oldnumeric.linear_algebra as LinearAlgebra
+import numpy as Numeric
+import numpy.linalg as LinearAlgebra
 import pyclimate.pydcdflib
 import pyclimate.mctest
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt
 import pyclimate.tools
-import Scientific.Statistics
 import sys
 
-NA = Numeric.NewAxis
-mm = Numeric.matrixmultiply
-SVD = LinearAlgebra.singular_value_decomposition
+NA = Numeric.newaxis
+mm = Numeric.dot
+SVD = LinearAlgebra.svd
 ptools = pyclimate.tools
 pmvstools = pyclimate.mvarstatools
 mctest = pyclimate.mctest

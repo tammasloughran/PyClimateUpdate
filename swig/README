@@ -1,0 +1,16 @@
+These files allow you to create the files JDTime_wrap.c,
+JDTime_wrap.doc and JDTime.py which give access to the C functions
+related to Julian Days and pydcdflib_wrap.doc and pydcdflib_wrap.c
+which give access to the C functions which are the interface to DCDFLIB.C
+library. If you care about SWIG and are interested in changing the
+standard distribution of pyclimate to the extent of changing the 
+access to those C modules, you should start changing these files.
+Otherwise, just forget them.
+
+I used swig this way:
+swig -python -shadow -make_default JDTime.i
+swig -python -shadow -make_default pydcdflb.i
+
+Then, copy the generated *_wrap.c and JDTime.py and pydcdflib.py to
+../src and rebuild pyclimate as usual.
+

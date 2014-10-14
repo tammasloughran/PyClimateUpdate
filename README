@@ -1,0 +1,54 @@
+PyClimate:
+
+WHAT IS THIS?
+This package is devoted to the analysis of climate variability using Python.
+It provides functions to perform some simple IO operations,
+operations with COARDS-compliante netCDF files, EOF analysis, SVD
+analysis of coupled data sets, linear digital filters, kernel
+based probabilitydensity function estimation and access to DCDFLIB.C
+library from Python.
+
+Almost all distributed code is original, but, just for ease of
+installation, the following code is distributed with pyclimate, 
+althought it is not ours:
+cdflib.h
+dcdflib.c
+ipmpar.c - Currently selected IEEE machines.
+They are the sources of DCDFLIB.C, by Barry W. Brown, James Lovato and
+Kathy Russell, distributed by StatLib and the University of Texas,
+M.D. Anderson Cancer Center. You can have to touch ipmpa.c, depending
+on the target machine.
+
+AUTHORS
+Jon Saenz - jsaenz@wm.lc.ehu.es
+Juan Zubillaga - wmpzuesj@lg.ehu.es
+Jesus Fernandez - wdpsaagj@lg.ehu.es
+
+LICENSE
+Distributed under the GNU Public License
+http://lcdx00.wm.lc.ehu.es/~jsaenz/
+http://starship.python.net/crew/jsaenz
+http://pyclimate.zubi.net
+
+CONTENTS - DIRECTORIES
+src
+The source code (C and Python) of the extensions in the package.
+
+swig
+The source code for SWIG in case there is any user willing to change
+the original C code which is used to build some of the extensions
+(namely, JDTime.c and pycdf.c). You are probably not interested in 
+these files...
+
+test
+pyclimatetest.py is a regression test which should allow you to be
+confident that the routines are working properly at your computer.
+Just execute it (python pyclimatetest.py) and it will let you know.
+
+doc
+Some documentation. Work in progess yet!
+
+examples
+Some Python scripts which show the use of the functions in the
+package.
+

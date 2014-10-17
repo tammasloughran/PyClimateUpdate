@@ -22,7 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
-import numpy as Numeric
+import numpy
 import math
 import sys
 import pyclimate.pyclimateexcpt
@@ -52,13 +52,13 @@ def unshape(arraynd, spacelast=1):
     'oldshape' -- Is the shape (a tuple) of <arraynd>. It'll be needed to 
                   recover the shape with <deunshape()>.
   """
-	arraynd = Numeric.array(arraynd)
+	arraynd = numpy.array(arraynd)
 	oldshape = arraynd.shape
 	if spacelast:
-		taillen = Numeric.multiply.reduce(oldshape[1:])
+		taillen = numpy.multiply.reduce(oldshape[1:])
 		arraynd.shape = (oldshape[0], taillen)
 	else:
-		headlen = Numeric.multiply.reduce(oldshape[:-1])
+		headlen = numpy.multiply.reduce(oldshape[:-1])
 		arraynd.shape = (headlen, oldshape[-1])
 	return arraynd, oldshape
 
@@ -73,7 +73,7 @@ def deunshape(array2d, oldshape):
 
   Returns the array with the specified shape.
   """
-	array2d = Numeric.array(array2d)
+	array2d = numpy.array(array2d)
 	array2d.shape = oldshape
 	return array2d 
 
@@ -92,20 +92,20 @@ def getneofs(lbd, percent=70):
   Returns the number of EOFs to retain to keep at least 'percent' of the 
   total variance of the field.
   """
-	percentlbd = 100*lbd/Numeric.add.reduce(lbd)
-	underlimit = Numeric.less_equal(
-		Numeric.add.accumulate(percentlbd), 
+	percentlbd = 100*lbd/numpy.add.reduce(lbd)
+	underlimit = numpy.less_equal(
+		numpy.add.accumulate(percentlbd), 
 		float(percent)
 	)
-	return 1 + Numeric.add.reduce(underlimit)
+	return 1 + numpy.add.reduce(underlimit)
 
 def correlation(xt, yt):
 	"Returns the correlation of arrays"
-	xanom = xt - Numeric.add.reduce(xt)/len(xt)
-	yanom = yt - Numeric.add.reduce(yt)/len(yt)
-	xstd = xanom / Numeric.sqrt(Numeric.add.reduce(xanom * xanom)) 
-	ystd = yanom / Numeric.sqrt(Numeric.add.reduce(yanom * yanom))
-	return Numeric.dot(xstd, ystd) 
+	xanom = xt - numpy.add.reduce(xt)/len(xt)
+	yanom = yt - numpy.add.reduce(yt)/len(yt)
+	xstd = xanom / numpy.sqrt(numpy.add.reduce(xanom * xanom)) 
+	ystd = yanom / numpy.sqrt(numpy.add.reduce(yanom * yanom))
+	return numpy.dot(xstd, ystd) 
 
 def ttest(xa, xb, significance=0.05):
 	"""Performs a t-test returning a mask for the significant values
@@ -129,13 +129,13 @@ def ttest(xa, xb, significance=0.05):
 	na = len(xa)
 	nb = len(xb)
 	dof = na + nb - 2
-	avea = Numeric.add.reduce(xa)/float(na)
-	aveb = Numeric.add.reduce(xb)/float(nb)
+	avea = numpy.add.reduce(xa)/float(na)
+	aveb = numpy.add.reduce(xb)/float(nb)
 	xa = xa - avea
 	xb = xb - aveb
-	stder = Numeric.add.reduce(xa*xa) + Numeric.add.reduce(xb*xb)
+	stder = numpy.add.reduce(xa*xa) + numpy.add.reduce(xb*xb)
 	stder = stder * (1.0/na + 1.0/nb ) / float(dof)
-	stder = Numeric.sqrt(stder)
+	stder = numpy.sqrt(stder)
 	thets = (avea - aveb) / stder
 	t = pyclimate.pydcdflib.CDFT()
 	t.which = 2
@@ -146,9 +146,9 @@ def ttest(xa, xb, significance=0.05):
 	t.p = 1.0 - significance/2.0
 	pyclimate.pydcdflib.pycdft(t)
 	thigh = t.t
-	lowmask = Numeric.less(thets, tlow)
-	highmask = Numeric.greater(thets, thigh)
-	return Numeric.logical_or(lowmask,highmask)
+	lowmask = numpy.less(thets, tlow)
+	highmask = numpy.greater(thets, thigh)
+	return numpy.logical_or(lowmask,highmask)
 
 def ftest(xa, xb, significance=0.05):
 	"""Two-tailed F-test returning a mask for the significant values
@@ -170,10 +170,10 @@ def ftest(xa, xb, significance=0.05):
 	import pyclimate.pydcdflib
 	na = len(xa)
 	nb = len(xb)
-	avea = Numeric.add.reduce(xa)/float(na)
-	aveb = Numeric.add.reduce(xb)/float(nb)
-	vara = Numeric.add.reduce((xa-avea)*(xa-avea))/float(na)
-	varb = Numeric.add.reduce((xb-aveb)*(xb-aveb))/float(nb)
+	avea = numpy.add.reduce(xa)/float(na)
+	aveb = numpy.add.reduce(xb)/float(nb)
+	vara = numpy.add.reduce((xa-avea)*(xa-avea))/float(na)
+	varb = numpy.add.reduce((xb-aveb)*(xb-aveb))/float(nb)
 	thefs = vara / varb
 	f = pyclimate.pydcdflib.CDFF()
 	f.which = 2
@@ -185,9 +185,9 @@ def ftest(xa, xb, significance=0.05):
 	f.p = 1.0 - significance/2.0
 	pyclimate.pydcdflib.pycdff(f)
 	fhigh = f.f
-	lowmask = Numeric.less(thefs, flow)
-	highmask = Numeric.greater(thefs, fhigh)
-	return Numeric.logical_or(lowmask,highmask)
+	lowmask = numpy.less(thefs, flow)
+	highmask = numpy.greater(thefs, fhigh)
+	return numpy.logical_or(lowmask,highmask)
 
 class _TimeSeries:
 	"""Object to extract statistical info from a sequence object
@@ -205,7 +205,7 @@ class _TimeSeries:
 		           the averaging operations will be performed over
 		           the first dimension.
 		"""
-		self.data = Numeric.array(seq)
+		self.data = numpy.array(seq)
 		self.shape = self.data.shape
 		self.records = len(self.data)
 		self.frecords = float(self.records)
@@ -218,77 +218,77 @@ class _TimeSeries:
 
 	def iqd(self):
 		"Inter-quartilic distance"
-		sdata = Numeric.sort(self.data,0)
-		return Numeric.absolute(
+		sdata = numpy.sort(self.data,0)
+		return numpy.absolute(
 			sdata[(self.records*3)/4]
 			- sdata[self.records/4]
 		) 
 
 	def max(self):
 		"Maximum"
-		sdata = Numeric.sort(self.data,0)
+		sdata = numpy.sort(self.data,0)
 		return sdata[-1]
 	
 	def median(self):
 		"Median"
-		sdata = Numeric.sort(self.data,0)
+		sdata = numpy.sort(self.data,0)
 		return sdata[self.records/2]
 	
 	def min(self):
 		"Minimum"
-		sdata = Numeric.sort(self.data,0)
+		sdata = numpy.sort(self.data,0)
 		return sdata[0]
 	
 	def q1(self):
 		"First quartil"
-		sdata = Numeric.sort(self.data,0)
+		sdata = numpy.sort(self.data,0)
 		return sdata[self.records/4]
 	
 	def q3(self):
 		"Third quartil"
-		sdata = Numeric.sort(self.data,0)
+		sdata = numpy.sort(self.data,0)
 		return sdata[(self.records*3)/4]
 	
 	def mean(self):
 		"Mean"
-		return Numeric.add.reduce(self.data)/self.frecords
+		return numpy.add.reduce(self.data)/self.frecords
 
 	def mad(self):
 		"Mean absolute deviation"
-		return Numeric.add.reduce(Numeric.absolute(self.center().data))/self.frecords
+		return numpy.add.reduce(numpy.absolute(self.center().data))/self.frecords
 
 	def standardize(self):
 		"Standardized version of the TimeSeries object"
 		std = self.std()
-		mask = Numeric.not_equal(std,0)
-		maskedstd = std + Numeric.logical_not(mask)
+		mask = numpy.not_equal(std,0)
+		maskedstd = std + numpy.logical_not(mask)
 		rval = mask * (self.data - self.mean()) / maskedstd
 		return TimeSeries(rval)
 
 	def std(self):
 		"standard deviation"
-		return Numeric.sqrt(self.variance())
+		return numpy.sqrt(self.variance())
 
 	def toarray(self):
 		"Returns the TimeSeries object internal data as a NumPy array"
-		return Numeric.array(self.data)
+		return numpy.array(self.data)
 
 	def variance(self):
 		"Variance"
-		return Numeric.add.reduce(self.center().data * self.center().data)/self.frecords
+		return numpy.add.reduce(self.center().data * self.center().data)/self.frecords
 
 	def correlation(self, TSobj):
 		"Correlation with other TSObject"
 		if len(TSobj) != self.records:
 			raise excpt.SVDLengthException(len(TSobj),self.records)
 		rval = self.standardize().data * TSobj.standardize().data
-		return Numeric.add.reduce(rval)/self.frecords
+		return numpy.add.reduce(rval)/self.frecords
 
 	def kurtosis(self):
 		"Kurtosis"
 		rval = self.data - self.mean()
 		rval = rval ** 4.
-		rval = Numeric.add.reduce(rval) / self.frecords
+		rval = numpy.add.reduce(rval) / self.frecords
 		rval = rval / (self.variance()**2)
 		rval = rval - 3.
 		return rval
@@ -296,8 +296,8 @@ class _TimeSeries:
 	def skewness(self):
 		rval = self.data - self.mean()
 		rval = rval ** 3.
-		rval = Numeric.add.reduce(rval) / self.frecords
-		rval = rval / (Numeric.sqrt(self.variance()**3))
+		rval = numpy.add.reduce(rval) / self.frecords
+		rval = rval / (numpy.sqrt(self.variance()**3))
 		return rval
 
 	def autocorrelation(self, lag=1):
@@ -314,7 +314,7 @@ class _TimeSeries:
 		if len(TSobj) != self.records:
 			raise excpt.SVDLengthException(len(TSobj),self.records)
 		rval = self.standardize().data * TSobj.center().data
-		return Numeric.add.reduce(rval)/self.frecords
+		return numpy.add.reduce(rval)/self.frecords
 
 	def __getitem__(self,idx):
 		"Index access to internal data"

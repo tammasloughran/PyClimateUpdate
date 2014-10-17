@@ -1,57 +1,57 @@
 #!/usr/local/bin/python
 # Adapted for numpy/ma/cdms2 by convertcdms.py
 #
-# Handle Numeric arrays with missing values
+# Handle numpy arrays with missing values
 # Jon Saenz, 20000410
 # Jesus Fernandez, 20001116
-import numpy as Numeric
+import numpy
 
 class MaskedArray:
-	def __init__(self, data, miss, tol=0.0, tcode=Numeric.float64):
-		self.data=Numeric.array(data,tcode)
+	def __init__(self, data, miss, tol=0.0, tcode=numpy.float64):
+		self.data=numpy.array(data,tcode)
 		self.missing=miss
-		himask = Numeric.greater(self.data, miss + tol)
-		lomask = Numeric.less(self.data, miss - tol)
-		self.mask = Numeric.logical_or(himask, lomask)
+		himask = numpy.greater(self.data, miss + tol)
+		lomask = numpy.less(self.data, miss - tol)
+		self.mask = numpy.logical_or(himask, lomask)
 
 	def mean(self):
-		num = MaskedArray(Numeric.add.reduce(self.data * self.mask), self.missing)
-		den = MaskedArray(Numeric.add.reduce(self.mask), self.missing)
+		num = MaskedArray(numpy.add.reduce(self.data * self.mask), self.missing)
+		den = MaskedArray(numpy.add.reduce(self.mask), self.missing)
 		return num / den
 
 	def setMissing(self, miss, tol=0.0):
 		self.missing=miss
-		himask = Numeric.greater(self.data, miss + tol)
-		lomask = Numeric.less(self.data, miss - tol)
-		self.mask = Numeric.logical_and(logical_or(himask, lomask),self.mask)
+		himask = numpy.greater(self.data, miss + tol)
+		lomask = numpy.less(self.data, miss - tol)
+		self.mask = numpy.logical_and(logical_or(himask, lomask),self.mask)
 
 	def applyMissing(self):
 		self.data = self.data * self.mask + logical_not(self.mask) * self.missing
 
 	def sqrt(self):
-		nonegative=Numeric.greater_equal(self.data, 0.0)
-		valids = Numeric.logical_and(self.mask, nonegative)
-		sqdata=Numeric.sqrt(self.data * valids) + self.missing*logical_not(valids)
+		nonegative=numpy.greater_equal(self.data, 0.0)
+		valids = numpy.logical_and(self.mask, nonegative)
+		sqdata=numpy.sqrt(self.data * valids) + self.missing*logical_not(valids)
 		return MaskedArray(sqdata, self.missing)
 
-	def toarray(self, tcode=Numeric.float64):
+	def toarray(self, tcode=numpy.float64):
 		return self.data.astype(tcode)
 
 	def __add__(self,marr):
 		try: 
-			valid=Numeric.logical_and(self.mask, marr.mask)
-			c=valid*(self.data+marr.data)+Numeric.logical_not(valid)*self.missing
+			valid=numpy.logical_and(self.mask, marr.mask)
+			c=valid*(self.data+marr.data)+numpy.logical_not(valid)*self.missing
 		except:
 			valid=self.mask
-			c=valid*(self.data+marr)+Numeric.logical_not(valid)*self.missing
+			c=valid*(self.data+marr)+numpy.logical_not(valid)*self.missing
 		return MaskedArray(c, self.missing)
 
 	def __div__(self,marr):
 		nozerosb=not_equal(marr.data, 0.0)
-		validb=Numeric.logical_and(marr.mask, nozerosb)
-		valid=Numeric.logical_and(self.mask, validb)
-		denomzeros2ones = marr.data + Numeric.logical_not(validb)
-		c=valid*(self.data / denomzeros2ones)+Numeric.logical_not(valid)*self.missing
+		validb=numpy.logical_and(marr.mask, nozerosb)
+		valid=numpy.logical_and(self.mask, validb)
+		denomzeros2ones = marr.data + numpy.logical_not(validb)
+		c=valid*(self.data / denomzeros2ones)+numpy.logical_not(valid)*self.missing
 		return MaskedArray(c, self.missing)
 
 	def __getitem__(self,idx):
@@ -64,19 +64,19 @@ class MaskedArray:
 		return self.__rmul__(marr)
 
 	def __neg__(self):
-		c = -self.data*self.mask + Numeric.logical_not(self.mask)*self.missing
+		c = -self.data*self.mask + numpy.logical_not(self.mask)*self.missing
 		return MaskedArray(c, self.missing)
 	
 	def __pow__(self,power):
-		thezeros = Numeric.equal(self.data,0.0)
-		haszeros = Numeric.add.reduce(ravel(thezeros))
+		thezeros = numpy.equal(self.data,0.0)
+		haszeros = numpy.add.reduce(ravel(thezeros))
 		if haszeros and power < 0.0:
-			valid = Numeric.logical_and(self.mask,Numeric.logical_not(thezeros))
-			c = (self.data*valid+1.0*Numeric.logical_not(valid))**power
-			c = c * valid + Numeric.logical_not(valid) * self.missing
+			valid = numpy.logical_and(self.mask,numpy.logical_not(thezeros))
+			c = (self.data*valid+1.0*numpy.logical_not(valid))**power
+			c = c * valid + numpy.logical_not(valid) * self.missing
 		else:
 			valid = self.mask
-			c = valid * (self.data ** power) + Numeric.logical_not(valid) * self.missing
+			c = valid * (self.data ** power) + numpy.logical_not(valid) * self.missing
 		return MaskedArray(c, self.missing)
 	def __repr__(self):
 		return `self.data`
@@ -85,23 +85,23 @@ class MaskedArray:
 		return self.__add__(marr)
 
 	def __rdiv__(self,marr):
-		nozerosb=Numeric.not_equal(self.data, 0.0)
-		validb=Numeric.logical_and(self.mask,nozerosb)
+		nozerosb=numpy.not_equal(self.data, 0.0)
+		validb=numpy.logical_and(self.mask,nozerosb)
 		try:
-			valid=Numeric.logical_and(marr.mask, validb)
-			denomzeros2ones = self.data + Numeric.logical_not(validb)
-			c=valid*(marr.data / denomzeros2ones)+Numeric.logical_not(valid)*self.missing
+			valid=numpy.logical_and(marr.mask, validb)
+			denomzeros2ones = self.data + numpy.logical_not(validb)
+			c=valid*(marr.data / denomzeros2ones)+numpy.logical_not(valid)*self.missing
 		except:
-			denomzeros2ones = self.data + Numeric.logical_not(validb)
-			c=validb*(marr / denomzeros2ones)+Numeric.logical_not(validb)*self.missing
+			denomzeros2ones = self.data + numpy.logical_not(validb)
+			c=validb*(marr / denomzeros2ones)+numpy.logical_not(validb)*self.missing
 		return MaskedArray(c, self.missing)
 
 	def __rmul__(self,marr):
 		try: 
-			valid=Numeric.logical_and(self.mask,marr.mask)
-			c=valid*(self.data * marr.data)+Numeric.logical_not(valid)*self.missing
+			valid=numpy.logical_and(self.mask,marr.mask)
+			c=valid*(self.data * marr.data)+numpy.logical_not(valid)*self.missing
 		except:
-			c=self.mask*(self.data * marr)+Numeric.logical_not(self.mask)*self.missing
+			c=self.mask*(self.data * marr)+numpy.logical_not(self.mask)*self.missing
 		return MaskedArray(c, self.missing)
 
 	def __rsub__(self, marr):
@@ -111,13 +111,13 @@ class MaskedArray:
 		return self.__add__(-marr) 
 
 if __name__ == "__main__":
-	a = Numeric.array(
+	a = numpy.array(
 		[[ 1.0, -67,     18.0, 9 ],
 		 [ 6.7, 99.,      0.0, 45],
 		 [ 0.0, 99.00001, 0.1, 20]]
 	)
 	ma = MaskedArray(a,99.)
-	b = Numeric.array(
+	b = numpy.array(
 		[[91.0, 98,     17.0, 90],
 		 [ 6.7, 99.,      0.0, 44],
 		 [10.0, 99.00001, 0.5, 10]]

@@ -1,7 +1,7 @@
 # Adapted for numpy/ma/cdms2 by convertcdms.py
 # NHArray.py
 
-"""Numeric Histogram Array
+"""numpy Histogram Array
 
 Multidimensional histogram array to perform Monte Carlo tests for
 asessing statistical significance.
@@ -24,10 +24,10 @@ asessing statistical significance.
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 import pyclimate.anumhist
-import numpy as Numeric
+import numpy
 
 class NHArray:
-  "Numeric Histogram Array class"
+  "numpy Histogram Array class"
   def __init__(self, xl, xu, nbins, elems):
     """Constructor for the NHArray class
 
@@ -48,7 +48,7 @@ class NHArray:
     "Adds a new multidimensional item 'field' to the histogram"
     pyclimate.anumhist.UpdateNHArray(
       self.thestruct,
-      Numeric.ravel(field).astype('d')
+      numpy.ravel(field).astype('d')
     )
 
   def GetRange(self, prob):

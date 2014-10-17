@@ -21,8 +21,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy as Numeric
-import numpy.linalg as LinearAlgebra
+import numpy
+import Scientific.Statistics
 import sys
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt
@@ -35,6 +35,8 @@ mt=pyclimate.mvarstatools
 excpt=pyclimate.pyclimateexcpt
 mctest=pyclimate.mctest
 tools=pyclimate.tools
+def mm(array1,array2):
+  return numpy.matrix(array1)*numpy.matrix(array2)
 
 def svd(sfield,zfield):
 	"""Given two fields, get the SVD of their covariance matrix.
@@ -62,8 +64,8 @@ def svd(sfield,zfield):
 	if not zfield2d:
 		zfield, oldzshape = tools.unshape(zfield)
 	csz=mt.covariancematrix(sfield,zfield)
-	P,sigma,Qt=LinearAlgebra.svd(csz)
-	Q=Numeric.transpose(Qt)
+	P,sigma,Qt=numpy.linalg.svd(csz,full_matrices=0)
+	Q=numpy.transpose(Qt)
 	# Returns:
 	# P -> Left singular vectors
 	# sigma -> Covariances of each of the modes
@@ -81,10 +83,10 @@ def SCF(sigmas):
 
     'sigmas' -- Covariances returned by svd()
 
-  Returns a Numeric array with the Squared covariance fraction
+  Returns a numpy array with the Squared covariance fraction
   """
 	sigma2=sigmas*sigmas
-	totalsc=Numeric.add.reduce(sigma2)
+	totalsc=numpy.add.reduce(sigma2)
 	return (sigma2/totalsc)
 
 def CSCF(sigmas):
@@ -94,9 +96,9 @@ def CSCF(sigmas):
 
     'sigmas' -- Covariances returned by svd()
 
-  Returns a Numeric Array with the Cumulative squared covariance fraction
+  Returns a numpy Array with the Cumulative squared covariance fraction
   """
-	return (Numeric.add.accumulate(SCF(sigmas)))
+	return (numpy.add.accumulate(SCF(sigmas)))
 
 def numberofvectors(svectors):
 	"""Number of eigenvectors according to our storage rules.
@@ -130,13 +132,13 @@ def getcoefs(data,svectors):
 
     'svectors' -- Singular vectors (left or right) as returned by 'svd()'
   """
-	coefs=Numeric.dot(tools.unshape(data)[0], 
+	coefs=mm(tools.unshape(data)[0], 
 		tools.unshape(svectors,0)[0])
 	return coefs
 
 def getcoefcorrelations(scoefs, zcoefs):
 	"Correlation between the temporal expansion coefficients"
-	return Numeric.diagonal(mt.correlationmatrix(scoefs, zcoefs))                 
+	return numpy.diagonal(mt.correlationmatrix(scoefs, zcoefs))                 
 
 def homogeneousmaps(data,svectors):
 	"""Homogeneus correlation maps
@@ -151,7 +153,7 @@ def homogeneousmaps(data,svectors):
 	data, oldshape = tools.unshape(data)
 	cdata=mt.standardize(data)
 	ccoefs=mt.standardize(coefs)
-	themaps=Numeric.dot(Numeric.transpose(cdata),ccoefs)/len(ccoefs)
+	themaps=mm(numpy.transpose(cdata),ccoefs)/len(ccoefs)
 	themaps = tools.deunshape(themaps, oldshape[1:] + ccoefs.shape[-1:])
 	return themaps
 
@@ -170,14 +172,14 @@ def heterogeneousmaps(xdata,ycoefs):
 	xdata, oldshape = tools.unshape(xdata)
 	cdata=mt.standardize(xdata)
 	ccoefs=mt.standardize(ycoefs)
-	themaps=Numeric.dot(Numeric.transpose(cdata),ccoefs)/len(cdata)
+	themaps=mm(numpy.transpose(cdata),ccoefs)/len(cdata)
 	themaps = tools.deunshape(themaps, oldshape[1:] + ccoefs.shape[-1:])
 	return themaps
 
 def _getsubset(ldata,rdata,ielems):
 	seq=mctest.getrandomsubsample(ielems,len(ldata))
-        subl=Numeric.take(ldata,seq)
-        subr=Numeric.take(rdata,seq)
+        subl=numpy.take(ldata,seq)
+        subr=numpy.take(rdata,seq)
         return subl,subr
 
 def makemctest(Umaster,Vmaster,ldata,rdata,itimes,ielems):
@@ -200,8 +202,8 @@ def makemctest(Umaster,Vmaster,ldata,rdata,itimes,ielems):
 	vectors=Umaster.shape[-1]
 	if Vmaster.shape[-1]!=vectors:
 		raise excpt.SVDSubsetLengthException(vectors,len(Vmaster[0]))
-	uccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.float64)
-	vccoefs=Numeric.zeros((itimes,)+(vectors,),Numeric.float64)
+	uccoefs=numpy.zeros((itimes,)+(vectors,),numpy.float64)
+	vccoefs=numpy.zeros((itimes,)+(vectors,),numpy.float64)
         for itime in xrange(itimes):
                 lsubset,rsubset=_getsubset(ldata,rdata,ielems)
                 U,sigma,V=svd(lsubset,rsubset)

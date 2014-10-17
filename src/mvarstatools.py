@@ -34,25 +34,26 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
-import numpy as Numeric
-import numpy.linalg as LinearAlgebra
+import numpy
 import sys
 import pyclimate.pyclimateexcpt
 import pyclimate.tools
 
 pex=pyclimate.pyclimateexcpt
 
+def mm(array1,array2):
+  return numpy.matrix(array1)*numpy.matrix(array2)
 
 def center(dataset):
 	"Returns a centered version (mean along _first_ axis removed) of an array"
-	theaverage=(Numeric.add.reduce(dataset))/float(len(dataset))
-	return (Numeric.array(dataset)-theaverage)
+	theaverage=(numpy.add.reduce(dataset))/float(len(dataset))
+	return (numpy.array(dataset)-theaverage)
 
 def standardize(dataset):
 	"Standardized (centered and unit variance) version of an array"
 	residual=center(dataset)
-	std=Numeric.sqrt(Numeric.add.reduce(residual*residual)/float(len(residual)))
-	return Numeric.array(residual)/std
+	std=numpy.sqrt(numpy.add.reduce(residual*residual)/float(len(residual)))
+	return numpy.array(residual)/std
 
 def covariancematrix(X,Y):
 	"Compute the (S-Mode) covariance matrix of two datasets"
@@ -61,7 +62,7 @@ def covariancematrix(X,Y):
 	N=float(len(X))
 	cX=center(X)
 	cY=center(Y)
-	covmat=Numeric.dot(Numeric.transpose(cX),cY)/N
+	covmat=mm(numpy.transpose(cX),cY)/N
 	return covmat
 
 def correlationmatrix(X,Y):
@@ -71,7 +72,7 @@ def correlationmatrix(X,Y):
 	N=float(len(X))
 	cX=standardize(X)
 	cY=standardize(Y)
-	corrmat=Numeric.dot(Numeric.transpose(cX),cY)/N
+	corrmat=mm(numpy.transpose(cX),cY)/N
 	return corrmat
 
 def congruence(p1,p2):
@@ -81,9 +82,9 @@ def congruence(p1,p2):
   dimensions are found it returns an array with the congruence
   along the first dimension.
 	"""
-	norm1=Numeric.sqrt(Numeric.add.reduce(p1*p1))
-	norm2=Numeric.sqrt(Numeric.add.reduce(p2*p2))
-	crossdot=Numeric.add.reduce(p1*p2)
+	norm1=numpy.sqrt(numpy.add.reduce(p1*p1))
+	norm2=numpy.sqrt(numpy.add.reduce(p2*p2))
+	crossdot=numpy.add.reduce(p1*p2)
 	return crossdot/norm1/norm2
 
 def detrend(dataset,tvalues,order=1):
@@ -109,13 +110,13 @@ def detrend(dataset,tvalues,order=1):
   Of course, when removing a polynomial of the mentioned type, the
   mean is also removed !!!
 	"""
-	T=Numeric.ones((len(dataset),)+(order+1,),Numeric.float64)
+	T=numpy.ones((len(dataset),)+(order+1,),numpy.float64)
 	for iord in xrange(1,len(T[0])):
 		T[:,iord]=T[:,iord-1]*tvalues
-	V=Numeric.dot(Numeric.transpose(T),T)
-	Tx=Numeric.dot(Numeric.transpose(T),dataset)
-	A=Numeric.dot(LinearAlgebra.inv(V),Tx)
-	trendterm=Numeric.dot(T,A)
+	V=mm(numpy.transpose(T),T)
+	Tx=mm(numpy.transpose(T),dataset)
+	A=mm(numpy.linalg.inv(V),Tx)
+	trendterm=mm(T,A)
 	residual=dataset-trendterm
 	return residual,A
 
@@ -127,7 +128,7 @@ def totalvariance(field):
   and the variances obtained are added together.
 	"""
         zdot=center(pyclimate.tools.unshape(field)[0])
-        var=Numeric.add.reduce(Numeric.add.reduce(zdot*zdot))/len(zdot)
+        var=numpy.add.reduce(numpy.add.reduce(zdot*zdot))/len(zdot)
         return var
 
 

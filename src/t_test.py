@@ -23,13 +23,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy as Numeric
+import numpy
 import pyclimate.pyclimateexcpt
 
 class t_test_difference_of_means:
 	def __init__(self,afield,bfield,missing_value=None):
-		self.x=Numeric.array(afield)
-		self.y=Numeric.array(bfield)
+		self.x=numpy.array(afield)
+		self.y=numpy.array(bfield)
 		self.Nx=float(len(self.x))
 		self.Ny=float(len(self.y))
 		if self.Nx==0:

@@ -21,13 +21,13 @@
 # 
 
 import string
-import numpy as Numeric
+import numpy
 
 def _getnewlist():
 	return []
 
 def _makevector(matrix):
-	totlen = Numeric.multiply.reduce(matrix.shape)
+	totlen = numpy.multiply.reduce(matrix.shape)
 	matrix.shape = (totlen,)
 	return matrix
 
@@ -72,9 +72,9 @@ def readdat(fname,typecode=None):
 				sublist.append(_parsewithcomplexes(tok[i]))
 			seq.append(sublist)
 	if typecode==None:
-		a=Numeric.array(seq)
+		a=numpy.array(seq)
 	else:
-		a=Numeric.array(seq).astype(typecode)
+		a=numpy.array(seq).astype(typecode)
 	if 1 in a.shape:  # if it is a vector ...
 		a = _makevector(a)
 	return a
@@ -100,9 +100,9 @@ def readstdin(typecode=None):
                                 sublist.append(_parsewithcomplexes(tok[i]))
                         seq.append(sublist)
         if typecode==None:
-                a=Numeric.array(seq)
+                a=numpy.array(seq)
         else:
-                a=Numeric.array(seq).astype(typecode)
+                a=numpy.array(seq).astype(typecode)
         if 1 in a.shape:  # if it is a vector ...
                 a = _makevector(a)
         return a
@@ -132,9 +132,9 @@ def read1Ddat(fname,typecode=None):
 			for i in xrange(len(tok)):
 				seq.append(_parsewithcomplexes(tok[i]))
 	if typecode==None:
-		a=Numeric.array(seq)
+		a=numpy.array(seq)
 	else:
-		a=Numeric.array(seq).astype(typecode)
+		a=numpy.array(seq).astype(typecode)
 	return a
 
 def readcol(fname,col=1,typecode=None):
@@ -165,9 +165,9 @@ def readcol(fname,col=1,typecode=None):
 			seq.append(_parsewithcomplexes(tok[colm1]))
 	ifile.close()
 	if typecode==None:
-		a=Numeric.array(seq)
+		a=numpy.array(seq)
 	else:
-		a=Numeric.array(seq).astype(typecode)
+		a=numpy.array(seq).astype(typecode)
 	return a
 
 def readcols(fname,cols=[1],typecode=None):
@@ -202,9 +202,9 @@ def readcols(fname,cols=[1],typecode=None):
 			seq.append(thisseq)
 	ifile.close()
 	if typecode==None:
-		a=Numeric.array(seq)
+		a=numpy.array(seq)
 	else:
-		a=Numeric.array(seq).astype(typecode)
+		a=numpy.array(seq).astype(typecode)
 	return a
 
 

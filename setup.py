@@ -6,7 +6,7 @@ lib = os.path.join(os.path.join(sys.prefix, 'lib'), 'python'+sys.version[:3])
 site_packages = os.path.join(lib, 'site-packages')
 
 setup (name = "PyClimate",
-       version = "1.2.2",
+       version = "1.2.3",
 
        description = "Analysis of Climate Variability",
        author = "Jon Saenz, Jesus Fernandez and Juan Zubillaga",

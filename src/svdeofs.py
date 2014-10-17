@@ -29,18 +29,20 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 
-import numpy as Numeric
-import numpy.linalg as LinearAlgebra
+import numpy
 import pyclimate.pydcdflib
 import pyclimate.mctest
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt
 import pyclimate.tools
+import Scientific.Statistics
 import sys
 
-NA = Numeric.newaxis
-mm = Numeric.dot
-SVD = LinearAlgebra.svd
+NA = numpy.newaxis
+def mm(array1,array2):
+  print 'mming:',array1.shape,array2.shape
+  return numpy.matrix(array1)*numpy.matrix(array2)
+SVD = numpy.linalg.svd
 ptools = pyclimate.tools
 pmvstools = pyclimate.mvarstatools
 mctest = pyclimate.mctest
@@ -77,7 +79,7 @@ def svdeofs(dataset, pcscaling=0):
   field2d = len(dataset.shape)==2
   if not field2d:
     residual, oldshape = ptools.unshape(residual)
-  A,Lh,E = SVD(residual)
+  A,Lh,E = SVD(residual,full_matrices=0)
   # The eigenvalues from SVD routines are powered to 1/2, thus: square
   # the vector.
   # Moreover, in order to be able to compare these eigenvalues to the 
@@ -94,7 +96,7 @@ def svdeofs(dataset, pcscaling=0):
   normfactor = float(len(residual))
   L = Lh*Lh/normfactor
   # E is returned transposed
-  E = Numeric.transpose(E)
+  E = numpy.transpose(E)
   pcs = A*Lh
   if pcscaling == 0:
     # E orthonormal
@@ -103,8 +105,9 @@ def svdeofs(dataset, pcscaling=0):
   elif pcscaling == 1:
     # E orthogonal but not orthonormal
     # unity pc variances
-    E = E * Numeric.sqrt(L)[NA,:]
-    pcs = pcs / Numeric.sqrt(L)[NA,:]
+    print E.shape,L.shape
+    E = E * numpy.sqrt(L)[NA,:]
+    pcs = pcs / numpy.sqrt(L)[NA,:]
   else:
     raise pex.ScalingError(pcscaling)
   if not field2d:
@@ -130,9 +133,9 @@ def pcseriescorrelation(pcs, eofs, dataset):
   original time series with each PC.
   """
   residual = pmvstools.center(dataset)
-  datastd = Numeric.add.reduce(residual*residual) / float(len(residual))
-  datastd = Numeric.sqrt(datastd)
-  pcsstd = Numeric.sqrt(Numeric.add.reduce(pcs*pcs) / float(len(pcs)))
+  datastd = numpy.add.reduce(residual*residual) / float(len(residual))
+  datastd = numpy.sqrt(datastd)
+  pcsstd = numpy.sqrt(numpy.add.reduce(pcs*pcs) / float(len(pcs)))
   return eofs * pcsstd / datastd[...,NA] 
 
 def eofsasexplainedvariance(eofs,pcscaling=0,lambdas=None):
@@ -148,32 +151,32 @@ def eofsasexplainedvariance(eofs,pcscaling=0,lambdas=None):
     rval = eofs * eofs * lambdas[NA,:] 
   if not pcscaling in [0,1]:
     raise pex.ScalingError(pcscaling)    
-  totvar = Numeric.add.reduce(rval, -1)
+  totvar = numpy.add.reduce(rval, -1)
   return rval / totvar[...,NA]
 
 def getvariancefraction(lambdas):
-  return lambdas/Numeric.add.reduce(lambdas)
+  return lambdas/numpy.add.reduce(lambdas)
 
 def bartletttest(lambdas,samples):
   p = len(lambdas)
   theshape = (p-1,)
-  chis = Numeric.zeros(theshape,'d')
-  pchis = Numeric.zeros(theshape,'d')
+  chis = numpy.zeros(theshape,'d')
+  pchis = numpy.zeros(theshape,'d')
   nu = samples - 1
   # This test will fail when lambda[i]<=0!!!
-  mask = Numeric.less_equal(lambdas,0.0)
-  maskedlambdas = lambdas * Numeric.logical_not(mask) + mask
-  loglambdas = Numeric.log(maskedlambdas)
+  mask = numpy.less_equal(lambdas,0.0)
+  maskedlambdas = lambdas * numpy.logical_not(mask) + mask
+  loglambdas = numpy.log(maskedlambdas)
   for k in xrange(p-1):
     cdf = .5*(p-k-1)*(p-k+2)
     if mask[k] == 1:
       # "Transformed" eigenvalues, set a probability of 1
-      pchis = pchis * Numeric.logical_not(mask) + mask
+      pchis = pchis * numpy.logical_not(mask) + mask
       chis[k] = 0.0
     else:
       chis[k] = nu * (
-        (p-k) * Numeric.log(Numeric.add.reduce(maskedlambdas[k:])/(p-k))
-        - Numeric.add.reduce(loglambdas[k:])
+        (p-k) * numpy.log(numpy.add.reduce(maskedlambdas[k:])/(p-k))
+        - numpy.add.reduce(loglambdas[k:])
       )
       pchis[k] = getchiprob(chis[k],cdf)
   return (chis,pchis)
@@ -193,8 +196,8 @@ def getchiprob(chival,dof):
 
 
 def northtest(lambdas,tsamples):
-  factor = Numeric.sqrt(2./tsamples)
-  errors = Numeric.array(lambdas)*factor
+  factor = numpy.sqrt(2./tsamples)
+  errors = numpy.array(lambdas)*factor
   return errors
 
 def mctesteofs(dataset,eofs,subsamples,length):
@@ -207,15 +210,15 @@ def mctesteofs(dataset,eofs,subsamples,length):
   *subsamples* subsamples with *length* members in each 
   """
   eofnumber = eofs.shape[-1]
-  theccoefs = Numeric.zeros((subsamples,)+(eofnumber,),'d')
+  theccoefs = numpy.zeros((subsamples,)+(eofnumber,),'d')
   for isample in xrange(subsamples):
     subslist = mctest.getrandomsubsample(length,len(dataset))
-    subsample = Numeric.take(dataset,subslist,0)
+    subsample = numpy.take(dataset,subslist,0)
     z, lambdas, eofdot = svdeofs(subsample)
     for ieof in xrange(eofnumber):
       theccoefs[isample,ieof] = pmvstools.congruence(
-          Numeric.ravel(eofdot[...,ieof]),
-          Numeric.ravel(eofs[...,ieof])
+          numpy.ravel(eofdot[...,ieof]),
+          numpy.ravel(eofs[...,ieof])
       )
   return theccoefs
 
@@ -235,17 +238,17 @@ class SVDEOFs:
     """
     self.dataset = dataset
     self.originalshape = dataset[0].shape
-    self.channels = Numeric.multiply.reduce(Numeric.array(self.originalshape))
+    self.channels = numpy.multiply.reduce(numpy.array(self.originalshape))
     self.records = len(dataset)
     self.field2d = len(dataset.shape)==2
     residual = pmvstools.center(dataset)
     if not self.field2d:
       residual = ptools.unshape(residual)[0]
-    A,Lh,E = SVD(residual)
+    A,Lh,E = SVD(residual,full_matrices=0)
     normfactor = float(len(residual))
     self.L = self.lambdas = Lh*Lh/normfactor
     self.neofs = len(self.L)
-    self.flatE = Numeric.transpose(E)
+    self.flatE = numpy.transpose(E)
     self.E = ptools.deunshape(self.flatE, self.originalshape+(self.neofs,))
     self.P = A*Lh
 
@@ -259,10 +262,10 @@ class SVDEOFs:
     """
     if pcscaling == 0:
       # pc variances are the eigenvalues L
-      return Numeric.array(self.P)
+      return numpy.array(self.P)
     elif pcscaling == 1:
       # unity pc variances
-      return self.P / Numeric.sqrt(self.L)[NA,:]
+      return self.P / numpy.sqrt(self.L)[NA,:]
     else:
       raise pex.ScalingError(pcscaling)
       sys.exit(1)
@@ -278,12 +281,12 @@ class SVDEOFs:
     if pcscaling == 0: 
       # E orthonormal
       if not self.field2d:
-        return Numeric.array(self.E)
+        return numpy.array(self.E)
       else:
-        return Numeric.array(self.flatE)
+        return numpy.array(self.flatE)
     if pcscaling == 1:
       # E orthogonal but not orthonormal
-      rval = self.flatE * Numeric.sqrt(self.L)[NA,:]
+      rval = self.flatE * numpy.sqrt(self.L)[NA,:]
       if not self.field2d:
         return ptools.deunshape(rval, self.originalshape+(self.neofs,)) 
       else:
@@ -294,35 +297,35 @@ class SVDEOFs:
  
   def eigenvalues(self):
     "The decreasing variances associated to each EOF"
-    return Numeric.array(self.lambdas)
+    return numpy.array(self.lambdas)
 
   def eofsAsCorrelation(self):
     "The EOFs scaled as the correlation of the PC with the original field"
     residual = pmvstools.center(self.dataset)
-    datastd = Numeric.add.reduce(residual*residual)/float(self.records)
-    datastd = Numeric.sqrt(datastd)
-    pcsstd = Numeric.add.reduce(self.P*self.P)/float(self.records)
-    pcsstd = Numeric.sqrt(pcsstd)
+    datastd = numpy.add.reduce(residual*residual)/float(self.records)
+    datastd = numpy.sqrt(datastd)
+    pcsstd = numpy.add.reduce(self.P*self.P)/float(self.records)
+    pcsstd = numpy.sqrt(pcsstd)
     return self.E * pcsstd / datastd[...,NA] 
 
   def eofsAsExplainedVariance(self):
     "The EOFs scaled as fraction of explained variance of the original field"
     #e# NewAxis y multidimensionalidad ALTAMENTE DUDOSA
     rval = self.E * self.E 
-    totvar = Numeric.add.reduce(rval, -1)
+    totvar = numpy.add.reduce(rval, -1)
     return rval/totvar[...,NA]
 
   def varianceFraction(self):
     "The fraction of the total variance explained by each principal mode"
-    return self.lambdas/Numeric.add.reduce(self.lambdas)
+    return self.lambdas/numpy.add.reduce(self.lambdas)
 
   def totalAnomalyVariance(self):
     "The total variance associated to the field of anomalies"
-    return Numeric.add.reduce(self.lambdas)
+    return numpy.add.reduce(self.lambdas)
 
   def reconstructedField(self, neofs):
     "Reconstructs the original field using 'neofs' EOFs"
-    rval = mm(self.P[:,:neofs], Numeric.transpose(self.flatE[:,:neofs]))
+    rval = mm(self.P[:,:neofs], numpy.transpose(self.flatE[:,:neofs]))
     rval.shape = self.dataset.shape
     return rval
 
@@ -340,7 +343,7 @@ class SVDEOFs:
     """
     myX = X or self.dataset
     rval = self.projectField(neofs, myX)
-    rval = myX - mm(rval, Numeric.transpose(self.flatE[:,:neofs]))
+    rval = myX - mm(rval, numpy.transpose(self.flatE[:,:neofs]))
     return rval
 
   def projectField(self,neofs,X=None):
@@ -374,23 +377,23 @@ class SVDEOFs:
     """
     p = self.neofs
     theshape = (p-1,)
-    chis = Numeric.zeros(theshape,'d')
-    pchis = Numeric.zeros(theshape,'d')
+    chis = numpy.zeros(theshape,'d')
+    pchis = numpy.zeros(theshape,'d')
     nu = self.records-1
     # This test will fail when lambda[i]<=0!!!
-    mask = Numeric.less_equal(self.lambdas,0.0)
-    maskedlambdas = self.lambdas*Numeric.logical_not(mask)+mask
-    loglambdas = Numeric.log(maskedlambdas)
+    mask = numpy.less_equal(self.lambdas,0.0)
+    maskedlambdas = self.lambdas*numpy.logical_not(mask)+mask
+    loglambdas = numpy.log(maskedlambdas)
     for k in xrange(p-1):
       cdf = .5*(p-k-1)*(p-k+2)
       if mask[k] == 1:
         # "Transformed" eigenvalues, set a probability of 1
-        pchis = pchis*Numeric.logical_not(mask)+mask
+        pchis = pchis*numpy.logical_not(mask)+mask
         chis[k] = 0.0
       else:
         chis[k] = nu*((p-k)* \
-          Numeric.log(Numeric.add.reduce(maskedlambdas[k:])/(p-k)) \
-          -Numeric.add.reduce(loglambdas[k:]))
+          numpy.log(numpy.add.reduce(maskedlambdas[k:])/(p-k)) \
+          -numpy.add.reduce(loglambdas[k:]))
         pchis[k] = getchiprob(chis[k],cdf)
     return (chis,pchis)
 
@@ -402,8 +405,8 @@ class SVDEOFs:
       North et al. (1982) *Sampling errors in the estimation of empirical
       orthogonal functions*, Monthly Weather Review 110:699-706
     """
-    factor = Numeric.sqrt(2.0/self.records)
-    errors = Numeric.array(self.lambdas)*factor
+    factor = numpy.sqrt(2.0/self.records)
+    errors = numpy.array(self.lambdas)*factor
     return errors
 
   def MCTest(self,subsamples,length,neofs=None):
@@ -426,10 +429,10 @@ class SVDEOFs:
     each subsample obtained patterns with those obtained for the whole dataset.
     """
     neofs = neofs or ptools.getneofs(self.lambdas)
-    theccoefs = Numeric.zeros((subsamples,neofs),'d')
+    theccoefs = numpy.zeros((subsamples,neofs),'d')
     for isample in xrange(subsamples):
       subslist = mctest.getrandomsubsample(length,self.records)
-      SVDEOFsobj = SVDEOFs(Numeric.take(self.dataset,subslist))
+      SVDEOFsobj = SVDEOFs(numpy.take(self.dataset,subslist))
       eofdot = SVDEOFsobj.eofs()[...,:neofs]
       thiseofs = self.eofs()[...,:neofs]
       for ieof in xrange(neofs):
@@ -445,9 +448,9 @@ if __name__ == "__main__":
   def RMS(a,b):
     c = a-b
     c = c*c
-    c = Numeric.ravel(c)
-    c = Numeric.add.reduce(c)
-    c = Numeric.sqrt(c)
+    c = numpy.ravel(c)
+    c = numpy.add.reduce(c)
+    c = numpy.sqrt(c)
     return c
   print "Testing new class: SVDEOFs"
   print "--------------------------"
@@ -462,7 +465,7 @@ if __name__ == "__main__":
   print "RMS EOFs scaling 0: %f" % RMS(e, EOFobj.eofs())
   print "RMS EOFs scaling 1: %f" % RMS(E, EOFobj.eofs(1))
   print "RMS lambdas ......: %f" % RMS(l, EOFobj.lambdas)
-  dataset3d = Numeric.reshape(dataset2d,(5,3,2))
+  dataset3d = numpy.reshape(dataset2d,(5,3,2))
   print "3D example"
   print "----------"
   p,l,e = svdeofs(dataset3d,0)

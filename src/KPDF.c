@@ -38,7 +38,7 @@
 
 ***************/
 #include "Python.h"
-#include "numpy/oldnumeric.h"
+#include "numpy/arrayobject.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -97,7 +97,7 @@ void initKPDF( void )
 
   /* Initialize the Python Module */
   m=Py_InitModule("KPDF",KPDFMethods);
-  /* Give access to Numeric Arrays */
+  /* Give access to numpy Arrays */
   import_array();
   /* Intialize the dictionary */
   d=PyModule_GetDict(m);
@@ -239,10 +239,10 @@ static KernelFunctionPtr updfselectkf( UPDFMode mode, double *k )
 
 /********
 This function iterates over the input Python collection 'data'
-(Numeric array) and, for each value in the input collection 
-(Numeric array) 'xpoints', evaluates the PDF kernel based estimation 
+(numpy array) and, for each value in the input collection 
+(numpy array) 'xpoints', evaluates the PDF kernel based estimation 
 and returns the PDF at each point using the 
-requested bandwidth. It returns, therefore, a Numeric array of the same
+requested bandwidth. It returns, therefore, a numpy array of the same
 shape as 'xpoints'
 *******/
 static PyObject *UPDFEstimator( PyArrayObject *data , PyArrayObject *xpoints ,
@@ -260,7 +260,7 @@ static PyObject *UPDFEstimator( PyArrayObject *data , PyArrayObject *xpoints ,
 
   /** Test whether the input arrays are linear ***/
   if (data->nd!=1 || xpoints->nd!=1){
-    PyErr_SetString(PyExc_TypeError,"Univariate PDF estimator: 1-D Numeric arrays required");
+    PyErr_SetString(PyExc_TypeError,"Univariate PDF estimator: 1-D numpy arrays required");
     return NULL;
   }
   /** Select the kernel and normalizing constant ***/

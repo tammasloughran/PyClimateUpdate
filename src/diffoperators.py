@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
-import numpy as Numeric
+import numpy
 import math,sys
 
 def deg2rad(d):
@@ -54,12 +54,12 @@ class HGRADIENT:
 			self.dlon=deg2rad(lons[1]-lons[0])
 			self.dlat=deg2rad(lats[1]-lats[0])
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(deg2rad(lats))
+			self.clats=numpy.cos(deg2rad(lats))
 		else:
 			self.dlon=lons[1]-lons[0]
 			self.dlat=lats[1]-lats[0]
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(lats)
+			self.clats=numpy.cos(lats)
 		# Periodic boundaries in latitude/longitude
 		self.PBlon=PBlon
 
@@ -77,8 +77,8 @@ class HGRADIENT:
 				radius of the Earth 6.37e6)
 		"""
 		# Centered differences for each of the fields
-		u=Numeric.zeros(phi.shape,Numeric.float64)
-		v=Numeric.zeros(phi.shape,Numeric.float64)
+		u=numpy.zeros(phi.shape,numpy.float64)
+		v=numpy.zeros(phi.shape,numpy.float64)
 		# Longitudinal directions
 		u[...,1:-1]=phi[...,2:]-phi[...,:-2]
 		if not self.PBlon:
@@ -95,7 +95,7 @@ class HGRADIENT:
 		u=u/(2.*self.dlon*R)
 		v=v/(2.*self.dlat*R)
 		# Now, divide u by cos(lat)
-		u=u/self.clats[:,Numeric.newaxis]
+		u=u/self.clats[:,numpy.newaxis]
 		return (u,v)
 
 
@@ -126,12 +126,12 @@ class HDIVERGENCE:
 			self.dlon=deg2rad(lons[1]-lons[0])
 			self.dlat=deg2rad(lats[1]-lats[0])
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(deg2rad(lats))
+			self.clats=numpy.cos(deg2rad(lats))
 		else:
 			self.dlon=lons[1]-lons[0]
 			self.dlat=lats[1]-lats[0]
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(lats)
+			self.clats=numpy.cos(lats)
 		# Periodic boundaries in latitude/longitude
 		self.PBlon=PBlon
 
@@ -152,10 +152,10 @@ class HDIVERGENCE:
 				radius of the Earth 6.37e6)
 		"""
 		# Multiply each row of the v component by cosine(lat)
-		dummy=Numeric.array(v)*self.clats[:,Numeric.newaxis]
+		dummy=numpy.array(v)*self.clats[:,numpy.newaxis]
 		# Centered differences for each of the fields
-		cdifu=Numeric.zeros(u.shape,Numeric.float64)
-		cdifv=Numeric.zeros(v.shape,Numeric.float64)
+		cdifu=numpy.zeros(u.shape,numpy.float64)
+		cdifv=numpy.zeros(v.shape,numpy.float64)
 		# Longitudinal directions
 		cdifu[...,1:-1]=u[...,2:]-u[...,:-2]
 		if not self.PBlon:
@@ -173,7 +173,7 @@ class HDIVERGENCE:
 		cdifv=cdifv/2./self.dlat
 		# Now, divide by R*cos(lat)
 		dummy=cdifu+cdifv
-		dummy=dummy/self.clats[:,Numeric.newaxis]
+		dummy=dummy/self.clats[:,numpy.newaxis]
 		dummy=dummy/R
 		return dummy
 
@@ -203,12 +203,12 @@ class VCURL:
 			self.dlon=deg2rad(lons[1]-lons[0])
 			self.dlat=deg2rad(lats[1]-lats[0])
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(deg2rad(lats))
+			self.clats=numpy.cos(deg2rad(lats))
 		else:
 			self.dlon=lons[1]-lons[0]
 			self.dlat=lats[1]-lats[0]
 			# This array holds the cosine of the latitudes
-			self.clats=Numeric.cos(lats)
+			self.clats=numpy.cos(lats)
 		# Periodic boundaries in latitude/longitude
 		self.PBlon=PBlon
 
@@ -229,10 +229,10 @@ class VCURL:
 				radius of the Earth 6.37e6)
 		"""
 		# Multiply each row of the U component by cosine(lat)
-		dummy=Numeric.array(u)*self.clats[:,Numeric.newaxis]
+		dummy=numpy.array(u)*self.clats[:,numpy.newaxis]
 		# Centered differences for each of the fields
-		cdifu=Numeric.zeros(u.shape,Numeric.float64)
-		cdifv=Numeric.zeros(v.shape,Numeric.float64)
+		cdifu=numpy.zeros(u.shape,numpy.float64)
+		cdifv=numpy.zeros(v.shape,numpy.float64)
 		# Longitudinal directions
 		cdifv[...,1:-1]=v[...,2:]-v[...,:-2]
 		if not self.PBlon:
@@ -250,6 +250,6 @@ class VCURL:
 		cdifv=cdifv/2./self.dlon
 		# Now, divide by R*cos(lat)
 		dummy=cdifv-cdifu
-		dummy=dummy/self.clats[:,Numeric.newaxis]
+		dummy=dummy/self.clats[:,numpy.newaxis]
 		dummy=dummy/R
 		return dummy

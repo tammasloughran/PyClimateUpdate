@@ -28,7 +28,7 @@
 # Meteorology, Lanczos filtering in one and two dimensions, volume 18, 
 # pages=1016-1022
 
-import numpy as Numeric
+import numpy
 import pyclimate.LinearFilter
 
 import sys,math
@@ -107,7 +107,7 @@ class LanczosFilter(pyclimate.LinearFilter.LinearFilter):
     "Filter coefficients"
     n=self.length/2
     thepi=math.acos(-1.)
-    ocoefs=Numeric.zeros(self.length,Numeric.float64)
+    ocoefs=numpy.zeros(self.length,numpy.float64)
     # This is pretty singular...
     # sinc(0)=1!!; sin(2fx)/x = 2f!!
     k=0
@@ -135,7 +135,7 @@ class LanczosFilter(pyclimate.LinearFilter.LinearFilter):
 if __name__=="__main__":
   def testequality(dataa,datab,label=""):
     print "Testing equality:"+label
-    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.float64))
+    elems=multiply.reduce(numpy.array(dataa.shape,numpy.float64))
     residual2=(dataa-datab)*(dataa-datab)
     while len(residual2.shape)>1:
       residual2=add.reduce(residual2)
@@ -144,8 +144,8 @@ if __name__=="__main__":
 
   # Now, filter real data and compare with calibration results.
   # Both high pass and low-pass versions
-  pldata=Numeric.array(pyclimate.readdat.readcols("plnibpei.dat",[2,3,4,5,6,7]))
-  years=Numeric.array(pyclimate.readdat.readcol("plnibpei.dat",1))
+  pldata=numpy.array(pyclimate.readdat.readcols("plnibpei.dat",[2,3,4,5,6,7]))
+  years=numpy.array(pyclimate.readdat.readcol("plnibpei.dat",1))
   npoints = 7
   lpf=LanczosFilter('lp',0.25, 0.25, npoints)
   hpf=LanczosFilter('hp',0.25, 0.25, npoints)
@@ -170,12 +170,12 @@ if __name__=="__main__":
       bfset.append(bdata)
       byears.append(years[irec-bpf.length/2])
   # Create arrays from the filtered data
-  hfdata=Numeric.array(hfset)
-  lfdata=Numeric.array(lfset)
-  bfdata=Numeric.array(bfset)
-  hfyears=Numeric.array(hyears)
-  lfyears=Numeric.array(lyears)
-  bfyears=Numeric.array(byears)
+  hfdata=numpy.array(hfset)
+  lfdata=numpy.array(lfset)
+  bfdata=numpy.array(bfset)
+  hfyears=numpy.array(hyears)
+  lfyears=numpy.array(lyears)
+  bfyears=numpy.array(byears)
 
   ofile=open("lfdata.tmp","w")
   elems=len(lfdata)
@@ -221,12 +221,12 @@ if __name__=="__main__":
 
 
   # Load the reference series
-  hfrefyears=Numeric.array(pyclimate.readdat.readcol("plnibpei.hf.lanczos.ref"))
-  lfrefyears=Numeric.array(pyclimate.readdat.readcol("plnibpei.lf.lanczos.ref"))
-  bfrefyears=Numeric.array(pyclimate.readdat.readcol("plnibpei.bf.lanczos.ref"))
-  hfrefdata=Numeric.array(pyclimate.readdat.readcols("plnibpei.hf.lanczos.ref", [2,3,4,5,6,7]))
-  lfrefdata=Numeric.array(pyclimate.readdat.readcols("plnibpei.lf.lanczos.ref", [2,3,4,5,6,7]))
-  bfrefdata=Numeric.array(pyclimate.readdat.readcols("plnibpei.bf.lanczos.ref", [2,3,4,5,6,7]))
+  hfrefyears=numpy.array(pyclimate.readdat.readcol("plnibpei.hf.lanczos.ref"))
+  lfrefyears=numpy.array(pyclimate.readdat.readcol("plnibpei.lf.lanczos.ref"))
+  bfrefyears=numpy.array(pyclimate.readdat.readcol("plnibpei.bf.lanczos.ref"))
+  hfrefdata=numpy.array(pyclimate.readdat.readcols("plnibpei.hf.lanczos.ref", [2,3,4,5,6,7]))
+  lfrefdata=numpy.array(pyclimate.readdat.readcols("plnibpei.lf.lanczos.ref", [2,3,4,5,6,7]))
+  bfrefdata=numpy.array(pyclimate.readdat.readcols("plnibpei.bf.lanczos.ref", [2,3,4,5,6,7]))
 
   # Test if the datasets are equal
   testequality(hfrefyears,hfyears,"HFYEARS")

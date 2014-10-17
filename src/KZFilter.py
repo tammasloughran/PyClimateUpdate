@@ -24,7 +24,7 @@
 # Juan Zubillaga, 20000324
 # Jesus Fernandez, 20000724
 
-import numpy as Numeric
+import numpy
 import pyclimate.LinearFilter
 
 import sys,math
@@ -70,7 +70,7 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
     # Get the filter coefficients
     self.coefs=self.getcoefs()
     if not lowpass:
-      allpass=Numeric.zeros((self.length,),Numeric.float64)
+      allpass=numpy.zeros((self.length,),numpy.float64)
       allpass[self.length/2]=1.
       self.coefs[:]=allpass[:]-self.coefs[:]
     # Position in the buffer to store the input datafield
@@ -80,8 +80,8 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
 
   def getcoefs(self):
     "Coefficients of the filter"
-    oldcoef=Numeric.zeros(self.length,Numeric.float64)
-    newcoef=Numeric.zeros(self.length,Numeric.float64)
+    oldcoef=numpy.zeros(self.length,numpy.float64)
+    newcoef=numpy.zeros(self.length,numpy.float64)
     oldcoef[0]=1
     lfiltro=1
     for i1 in range(self.iterations):   # veces la media movil
@@ -121,7 +121,7 @@ class KZFilter(pyclimate.LinearFilter.LinearFilter):
 if __name__=="__main__":
   def testequality(dataa,datab,label=""):
     print "Testing equality:"+label
-    elems=multiply.reduce(Numeric.array(dataa.shape,Numeric.float64))
+    elems=multiply.reduce(numpy.array(dataa.shape,numpy.float64))
     residual2=(dataa-datab)*(dataa-datab)
     while len(residual2.shape)>1:
       residual2=add.reduce(residual2)
@@ -139,14 +139,14 @@ if __name__=="__main__":
 
   # Check whether the system works for different shapes of data
   # 2-D data..
-  a=Numeric.array([[0.9,0.8],[0.7,0.6]])
+  a=numpy.array([[0.9,0.8],[0.7,0.6]])
   for i in xrange(50):
     af=kzf.getfiltered(a)
     if af:
       print "2-D Done: %3d"%(i,)
 
   # Univariate data
-  a=Numeric.array([0.9,0.8,0.7,0.6]*10)
+  a=numpy.array([0.9,0.8,0.7,0.6]*10)
   kzf=KZFilter(5,5,0)
   for i in xrange(50):
     af=kzf.getfiltered(a)
@@ -155,7 +155,7 @@ if __name__=="__main__":
 
   # BIG data with multiple dimensions.......
   records=25
-  data=ones((records,5,6,10,10,2),Numeric.float64)
+  data=ones((records,5,6,10,10,2),numpy.float64)
   kzf=KZFilter(5,3)
   irec=0
   while irec<records:
@@ -166,8 +166,8 @@ if __name__=="__main__":
 
   # Now, filter real data and compare with calibration results.
   # Both high pass and low-pass versions
-  pldata=Numeric.array(pyclimate.readdat.readcols("plnibpei.dat",[2,3,4,5,6,7]))
-  years=Numeric.array(pyclimate.readdat.readcol("plnibpei.dat",1))
+  pldata=numpy.array(pyclimate.readdat.readcols("plnibpei.dat",[2,3,4,5,6,7]))
+  years=numpy.array(pyclimate.readdat.readcol("plnibpei.dat",1))
   lpf=KZFilter(5,3)
   hpf=KZFilter(5,3,0)
   lfset=[]
@@ -184,10 +184,10 @@ if __name__=="__main__":
       hfset.append(hdata)
       hyears.append(years[irec-lpf.length/2])
   # Create arrays from the filtered data
-  hfdata=Numeric.array(hfset)
-  lfdata=Numeric.array(lfset)
-  hfyears=Numeric.array(hyears)
-  lfyears=Numeric.array(lyears)
+  hfdata=numpy.array(hfset)
+  lfdata=numpy.array(lfset)
+  hfyears=numpy.array(hyears)
+  lfyears=numpy.array(lyears)
   ofile=open("lfdata.tmp","w")
   elems=len(lfdata)
   for irec in xrange(elems):
@@ -213,10 +213,10 @@ if __name__=="__main__":
   ofile.close()
 
   # Load the reference series
-  hfrefyears=Numeric.array(pyclimate.readdat.readcol("plnibpei.hf.ref"))
-  lfrefyears=Numeric.array(pyclimate.readdat.readcol("plnibpei.lf.ref"))
-  hfrefdata=Numeric.array(pyclimate.readdat.readcols("plnibpei.hf.ref", [2,3,4,5,6,7]))
-  lfrefdata=Numeric.array(pyclimate.readdat.readcols("plnibpei.lf.ref", [2,3,4,5,6,7]))
+  hfrefyears=numpy.array(pyclimate.readdat.readcol("plnibpei.hf.ref"))
+  lfrefyears=numpy.array(pyclimate.readdat.readcol("plnibpei.lf.ref"))
+  hfrefdata=numpy.array(pyclimate.readdat.readcols("plnibpei.hf.ref", [2,3,4,5,6,7]))
+  lfrefdata=numpy.array(pyclimate.readdat.readcols("plnibpei.lf.ref", [2,3,4,5,6,7]))
 
   # Test if the datasets are equal
   testequality(hfrefyears,hfyears,"HFYEARS")

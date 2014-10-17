@@ -27,8 +27,7 @@ import sys
 import os
 import getopt
 import Scientific.IO.NetCDF 
-import numpy.oldnumeric as Numeric
-import numpy.oldnumeric.linear_algebra as LinearAlgebra
+import numpy
 
 # Now, import pyclimate's features
 ####################################
@@ -69,7 +68,7 @@ def usage(pname):
 def reduceall(a):
   ndims = len(a.shape)
   for idim in range(ndims):
-    a = Numeric.add.reduce(a)
+    a = numpy.add.reduce(a)
   return a
 
 # If overwriting, create the variables...
@@ -86,9 +85,9 @@ def compareRMSvals(nc,varname,val,ovwr,dims,optlabel=""):
       return
     itimes=len(residual.shape)
     res2=residual*residual
-    nshape=Numeric.array(val.shape)
-    N=Numeric.multiply.reduce(nshape)
-    rms=Numeric.sqrt(Numeric.add.reduce(Numeric.ravel(res2))/N)
+    nshape=numpy.array(val.shape)
+    N=numpy.multiply.reduce(nshape)
+    rms=numpy.sqrt(numpy.add.reduce(numpy.ravel(res2))/N)
     if rms>TOLERANCE:
       statusflag=ERROR_FLAG
     else:
@@ -99,11 +98,11 @@ def compareRMSvals(nc,varname,val,ovwr,dims,optlabel=""):
 # Compute the Root-Mean-Square Error
 # WITHOUT storing in nor comparing with the NetCDF reference file.
 def comparememoryvals(label,val,val1,optlabel=""):
-  residual=Numeric.ravel(val1)-Numeric.ravel(val)
+  residual=numpy.ravel(val1)-numpy.ravel(val)
   N=len(residual)
   res2=residual*residual
-  temp=Numeric.add.reduce(res2)
-  rms=abs(Numeric.sqrt(temp/N))
+  temp=numpy.add.reduce(res2)
+  rms=abs(numpy.sqrt(temp/N))
   if rms>TOLERANCE:
     statusflag=ERROR_FLAG
   else:
@@ -125,8 +124,8 @@ def compareGvals(nc,varname,val,ovwr,dims,optlabel=""):
     for ieof in xrange(eofs):
       eofref=ref[...,ieof]
       eofval=ref[...,ieof]
-      normref=Numeric.sqrt(reduceall(eofref*eofref))
-      normval=Numeric.sqrt(reduceall(eofval*eofval))
+      normref=numpy.sqrt(reduceall(eofref*eofref))
+      normval=numpy.sqrt(reduceall(eofval*eofval))
       dotprod=reduceall(eofref*eofval)
       gcoeff=dotprod/normref/normval
       dg=1.-abs(gcoeff)
@@ -152,25 +151,25 @@ def testIOASCII(ovw,nc):
   comparememoryvals("ASCII-READDAT %2d"%(item,),data1,data1dot)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),data1,data1dotdot)
-  dataf=R.readdat(fname,Numeric.Float32)
-  datafdot=A.readdat(fname,Numeric.Float32)
+  dataf=R.readdat(fname,numpy.float32)
+  datafdot=A.readdat(fname,numpy.float32)
   A.writedat("pepe2.tmp",dataf)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),dataf,datafdot)
-  datafdot=A.readdat("pepe2.tmp",Numeric.Float32)
+  datafdot=A.readdat("pepe2.tmp",numpy.float32)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),dataf,datafdot)
   os.system("rm pepe*tmp")
-  datac=R.readdat(fname,Numeric.Complex32)
-  datab=R.readdat(fname,Numeric.Int16)
-  data2=R.readcol(fname,2,Numeric.Int16)
-  data2c=R.readcol(fname,2,Numeric.Complex64)
-  data2cdot=A.readcol(fname,2,Numeric.Complex64)
+  datac=R.readdat(fname,numpy.Complex32)
+  datab=R.readdat(fname,numpy.Int16)
+  data2=R.readcol(fname,2,numpy.Int16)
+  data2c=R.readcol(fname,2,numpy.Complex64)
+  data2cdot=A.readcol(fname,2,numpy.Complex64)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),dataf,datafdot)
   data13=R.readcols(fname,(1,3))
-  data13f=R.readcols(fname,(1,3),Numeric.Float32)
-  data13fdot=A.readcols(fname,(1,3),Numeric.Float32)
+  data13f=R.readcols(fname,(1,3),numpy.float32)
+  data13fdot=A.readcols(fname,(1,3),numpy.float32)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),data13f,data13fdot)
   if ovw:
@@ -218,7 +217,7 @@ def testIOnc(ovw):
     print
 
 def date2array(a):
-  return Numeric.array([a.year,a.month,a.day,a.hour,a.minute,a.second])
+  return numpy.array([a.year,a.month,a.day,a.hour,a.minute,a.second])
 
 def assigndate(jd,dtuple,jday):
   jd.year=dtuple[0]
@@ -229,14 +228,14 @@ def assigndate(jd,dtuple,jday):
   jd.second=dtuple[5]
   ttuple=dtuple[:5]+(int(dtuple[5]),)
   tstr="day%4.4d%2.2d%2.2d_%2.2d%2.2d%2.2d"%ttuple
-  return Numeric.array([pyclimate.JDTime.date2jd(jd),jday]),tstr
+  return numpy.array([pyclimate.JDTime.date2jd(jd),jday]),tstr
 
 def testJDTime(nc,ovw):
   if ovw:
     nc.createDimension("singleval",1)
     nc.createDimension("doubleval",2)
     nc.createDimension("datefield",6)
-  mstep=Numeric.array([pyclimate.JDTime.monthlystep()])
+  mstep=numpy.array([pyclimate.JDTime.monthlystep()])
   compareRMSvals(nc,"mstep",mstep,ovw,("singleval",))
   a=pyclimate.JDTime.JDTime()
   # 1999-02-12 is JD= 2451222
@@ -244,7 +243,7 @@ def testJDTime(nc,ovw):
   pyclimate.JDTime.jd2date(jd,a)
   aar=date2array(a)
   compareRMSvals(nc,"day19990212",aar,ovw,("datefield",))
-  ainv=Numeric.array([pyclimate.JDTime.date2jd(a),2451222.])
+  ainv=numpy.array([pyclimate.JDTime.date2jd(a),2451222.])
   compareRMSvals(nc,"day19990212JD",ainv,ovw,("doubleval",))
   # Several dates from Calendar FAQ,
   # quasar.as.utexas.edu/Billinfo/JulianDatesG.html
@@ -283,10 +282,10 @@ def testJDTimeHandler(nc,ovw):
   itime=inc.variables["time"]
   irecords=itime.shape[0]
   jdth=pyclimate.JDTimeHandler.JDTimeHandler(itime.units)
-  arrdates=Numeric.zeros((irecords,6),Numeric.Float64)
+  arrdates=numpy.zeros((irecords,6),numpy.float64)
   for irec in xrange(irecords):
     iy,im,id,ih,imin,isec=jdth.getdatefields(itime[irec],6)
-    arrdates[irec,:]=Numeric.array([iy,im,id,ih,imin,isec],Numeric.Float64)
+    arrdates[irec,:]=numpy.array([iy,im,id,ih,imin,isec],numpy.float64)
   if ovw:
     nc.createDimension("hgtrecords",irecords)
   compareRMSvals(nc,"hgtdate",arrdates,ovw,("hgtrecords","datefield"))
@@ -294,13 +293,13 @@ def testJDTimeHandler(nc,ovw):
   # see whether we are decoding correctly the date
   # fields in the time variable. Let's go to see if we encode them
   # properly
-  arrjds=Numeric.zeros((irecords,2),Numeric.Float64)
+  arrjds=numpy.zeros((irecords,2),numpy.float64)
   for irec in xrange(irecords):
     arrjds[irec,0]=jdth.gettimevalue(arrdates[irec])
     arrjds[irec,1]=itime[irec]
   compareRMSvals(nc,"hgttimes",arrjds,ovw,("hgtrecords","doubleval"))
   res=arrjds[:,0]-arrjds[:,1]
-  rms=Numeric.sqrt(Numeric.add.reduce(res*res)/len(res))
+  rms=numpy.sqrt(numpy.add.reduce(res*res)/len(res))
   if rms>TOLERANCE:
     statusflag=ERROR_FLAG
   else:
@@ -320,20 +319,20 @@ def testJDTimeHandler(nc,ovw):
 
 def dcdflibtest(dcd,nc,ov,whichstr,init=0):
   print "Performing test of",whichstr
-  Ps=Numeric.array([0.9,0.95,0.99,0.995])
-  dofs=Numeric.array([5.,10.,15.,20.,25.,30.])
-  Xs=Numeric.arange(0.5,4.05,0.5)
+  Ps=numpy.array([0.9,0.95,0.99,0.995])
+  dofs=numpy.array([5.,10.,15.,20.,25.,30.])
+  Xs=numpy.arange(0.5,4.05,0.5)
   if ov and init:
     nc.createDimension("probs",len(Ps))
     nc.createDimension("dofs",len(dofs))
     nc.createDimension("Xs",len(Xs))
-    nc.createVariable("Ps",Numeric.Float64,("probs",))[:]=Ps[:]
-    nc.createVariable("dofs",Numeric.Float64,("dofs",))[:]=dofs[:]
-    nc.createVariable("Xs",Numeric.Float64,("Xs",))[:]=Xs[:]
+    nc.createVariable("Ps",numpy.float64,("probs",))[:]=Ps[:]
+    nc.createVariable("dofs",numpy.float64,("dofs",))[:]=dofs[:]
+    nc.createVariable("Xs",numpy.float64,("Xs",))[:]=Xs[:]
   if whichstr=="Chi**2":
     f=dcd.CDFChi()
     f.which=2
-    thetable=Numeric.zeros((len(Ps),len(dofs)),Numeric.Float64)
+    thetable=numpy.zeros((len(Ps),len(dofs)),numpy.float64)
     for ip in xrange(len(Ps)):
       for idof in xrange(len(dofs)):
         f.p=Ps[ip]
@@ -351,7 +350,7 @@ def dcdflibtest(dcd,nc,ov,whichstr,init=0):
     f.which=1
     f.mean=0.0
     f.sd=1.
-    thetable=Numeric.zeros((len(Xs),2),Numeric.Float64)
+    thetable=numpy.zeros((len(Xs),2),numpy.float64)
     for ix in xrange(len(Xs)):
       f.x=Xs[ix]
       dcd.pycdfnor(f)
@@ -366,7 +365,7 @@ def dcdflibtest(dcd,nc,ov,whichstr,init=0):
   elif whichstr=="T":
     f=dcd.CDFT()
     f.which=2
-    thetable=Numeric.zeros((len(Ps),len(dofs)),Numeric.Float64)
+    thetable=numpy.zeros((len(Ps),len(dofs)),numpy.float64)
     for ip in xrange(len(Ps)):
       f.p=Ps[ip]
       for id in xrange(len(dofs)):
@@ -423,13 +422,13 @@ def testEOFs(nc,ov):
   compareRMSvals(nc,"chem_north",north,ov,("c_channels",))
   # Now, a less trivial case...
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  hgtdata=Numeric.array(inc.variables["hgt"][:,:,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   hgtdata2=hgtdata[:,:,:,:]
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2]*oldshape[3])
   hgtdata.shape=newshape
   Zs,lambdas,Es=eof.svdeofs(hgtdata)
-  Es = Numeric.array(Es) # to get a contiguous array
+  Es = numpy.array(Es) # to get a contiguous array
   pcfieldcorr=eof.pcseriescorrelation(Zs,Es,hgtdata)
   Es.shape=oldshape[1:]+Es.shape[-1:]
   pcfieldcorr.shape=Es.shape
@@ -480,7 +479,7 @@ def testnewEOFs(nc,ov):
     compareRMSvals(nc,"chem_north",north,ov,("c_channels",))
   # Now, a less trivial case in multichannel...
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  hgtdata=Numeric.array(inc.variables["hgt"][:,:,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   eofobj=pyclimate.svdeofs.SVDEOFs(hgtdata)
   pcfieldcorr=eofobj.eofsAsCorrelation()
   varfrac=eofobj.varianceFraction()
@@ -501,7 +500,7 @@ def testSVD(nc,ov):
   s=pyclimate.svd
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
-  hgtdata=Numeric.array(inc.variables["hgt"][:,1,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2])
   hgtdata.shape=newshape
@@ -565,8 +564,8 @@ def testCCA(nc,ov):
   c=pyclimate.bpcca
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
-  hgtdata=Numeric.array(inc.variables["hgt"][:,:,:,:],Numeric.Float64)
-  hgtdata2 = Numeric.array(hgtdata[:,:,:,:])    # for multichannel test
+  hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
+  hgtdata2 = numpy.array(hgtdata[:,:,:,:])    # for multichannel test
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2]*oldshape[3])
   hgtdata.shape=newshape
@@ -615,21 +614,21 @@ def testCCA(nc,ov):
 def testdiffoperators(nc,ov):
   do=pyclimate.diffoperators
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  lats=Numeric.array(inc.variables["lat"][:],'d')
+  lats=numpy.array(inc.variables["lat"][:],'d')
   rlats=do.deg2rad(lats)
-  lons=Numeric.array(inc.variables["lon"][:],Numeric.Float64)
+  lons=numpy.array(inc.variables["lon"][:],numpy.float64)
   rlons=do.deg2rad(lons)
   grad=do.HGRADIENT(lats,lons)
   div=do.HDIVERGENCE(lats,lons)
   curl=do.VCURL(lats,lons)
-  hdata=Numeric.array(inc.variables["hgt"][0,1,:,:],Numeric.Float64)
+  hdata=numpy.array(inc.variables["hgt"][0,1,:,:],numpy.float64)
   g=9.81
   omega=7.292e-5
-  kgeo=g/2/omega/Numeric.sin(rlats)
+  kgeo=g/2/omega/numpy.sin(rlats)
   # Geostrophic wind
   thegrad=grad.hgradient(hdata)
-  u=-kgeo[:,Numeric.NewAxis]*thegrad[1]
-  v=kgeo[:,Numeric.NewAxis]*thegrad[0]
+  u=-kgeo[:,numpy.NewAxis]*thegrad[1]
+  v=kgeo[:,numpy.NewAxis]*thegrad[0]
   # Gradient of the geostrophic wind (mostly harmless...)
   thediv=div.hdivergence(u,v)
   # Curl of the geostrophic wind
@@ -637,12 +636,12 @@ def testdiffoperators(nc,ov):
   if ov:
     nc.createDimension("lat",len(rlats))
     nc.createDimension("lon",len(rlons))
-    nc.createVariable("lat",Numeric.Float32,("lat",))[:]=lats.astype('f')
+    nc.createVariable("lat",numpy.float32,("lat",))[:]=lats.astype('f')
     nc.variables["lat"].units="degrees_north"
-    nc.createVariable("lon",Numeric.Float32,("lon",))[:]=lons.astype('f')
+    nc.createVariable("lon",numpy.float32,("lon",))[:]=lons.astype('f')
     nc.variables["lon"].units="degrees_east"
-    nc.createVariable("hgt",Numeric.Float32,("lat","lon"))
-    nc.variables["hgt"][:,:]=hdata.astype(Numeric.Float32)
+    nc.createVariable("hgt",numpy.float32,("lat","lon"))
+    nc.variables["hgt"][:,:]=hdata.astype(numpy.float32)
   compareRMSvals(nc,"uwind",u,ov,("lat","lon"))
   compareRMSvals(nc,"vwind",v,ov,("lat","lon"))
   compareRMSvals(nc,"DIVuv",thediv,ov,("lat","lon"))
@@ -654,7 +653,7 @@ def testfilters(nc,ov):
   la=pyclimate.LanczosFilter
   data2D=pyclimate.readdat.readdat("ctiao.dat")
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  data3D=Numeric.array(inc.variables["hgt"][:,2,0:3,4:6],Numeric.Float64)
+  data3D=numpy.array(inc.variables["hgt"][:,2,0:3,4:6],numpy.float64)
   # Instances of filters
   filters={}
   filters["kzh"]=kz.KZFilter(3,3,0)
@@ -689,7 +688,7 @@ def testfilters(nc,ov):
         fdata=f.getfiltered(data[irec])
         if fdata is not None:
           result.append(fdata)
-      result=Numeric.array(result)
+      result=numpy.array(result)
       varname=kf+"_"+datanames[id]
       if ov:
         nc.createDimension("dimX_"+varname,len(result))
@@ -705,11 +704,11 @@ def testfilters(nc,ov):
 
 def testKPDF(nc,ov):
   # Save some typing
-  LA=LinearAlgebra
+  
   KPDF=pyclimate.KPDF
   # Global definitions for this module
-  Xs=Numeric.arange(-5,5.01,0.5) # X-Y grid
-  Ys=Numeric.arange(-5,5.01,0.5)
+  Xs=numpy.arange(-5,5.01,0.5) # X-Y grid
+  Ys=numpy.arange(-5,5.01,0.5)
   # Define the netCDF dimensions to store the values
   if ov:
     nc.createDimension("PDFdimx",len(Xs))
@@ -722,14 +721,14 @@ def testKPDF(nc,ov):
   compareRMSvals(nc,"pdfCTIBiweight",pdf,ov,("PDFdimx",))
   pdf=KPDF.UPDFTriangular(cti,Xs,1.)
   compareRMSvals(nc,"pdfCTITriangular",pdf,ov,("PDFdimx",))
-  opth=Numeric.array([KPDF.UPDFOptimumBandwidth(cti)])
+  opth=numpy.array([KPDF.UPDFOptimumBandwidth(cti)])
   compareRMSvals(nc,"UPDFOptimumBandwidthCTI",opth,ov,("singleval",))
   # Multivariate PDFs (2D)
   # Read the CTI/AO dataset, covariance matrix and sqrt(det(S))
   ctiao=pyclimate.readdat.readdat("ctiao.dat") # Read
   S=pyclimate.mvarstatools.covariancematrix(ctiao,ctiao)
-  Sm1=LA.inverse(S)
-  sqrtdetS=Numeric.sqrt(LA.determinant(S))
+  Sm1=numpy.linalg.inv(S)
+  sqrtdetS=numpy.sqrt(numpy.linalg.det(S))
   # Start computing the 2D-PDFs
   PDFshape=(len(Xs),len(Ys))
   grid=KPDF.MPDF2DGrid2Array(Xs,Ys)
@@ -745,13 +744,13 @@ def testKPDF(nc,ov):
   pdfvect=KPDF.MPDFGaussian(ctiao,grid,1.)
   pdfvect.shape=PDFshape
   compareRMSvals(nc,"pdf2DGaussian",pdfvect,ov,("PDFdimx","PDFdimy"))
-  opth=Numeric.array([KPDF.MPDFOptimumBandwidth(ctiao)])
+  opth=numpy.array([KPDF.MPDFOptimumBandwidth(ctiao)])
   compareRMSvals(nc,"MPDFOptimumBandwidthCTIAO",opth,ov,("singleval",))
 
 def rms4D(err):
-  theshape=Numeric.array(err.shape)
-  N=Numeric.multiply.reduce(theshape)
-  rms=Numeric.sqrt(Numeric.add.reduce(Numeric.add.reduce(Numeric.add.reduce(Numeric.add.reduce(err*err))))/N)
+  theshape=numpy.array(err.shape)
+  N=numpy.multiply.reduce(theshape)
+  rms=numpy.sqrt(numpy.add.reduce(numpy.add.reduce(numpy.add.reduce(numpy.add.reduce(err*err))))/N)
   return rms
 
 def testnewdiffoperators(nc,ovwr):
@@ -770,12 +769,12 @@ def testnewdiffoperators(nc,ovwr):
   hvar=inc.variables["hgt"]
   uvar=inc.variables["u"]
   vvar=inc.variables["v"]
-  lats=Numeric.array(inc.variables["lat"][:],Numeric.Float64)
-  lons=Numeric.array(inc.variables["lon"][:],Numeric.Float64)
+  lats=numpy.array(inc.variables["lat"][:],numpy.float64)
+  lons=numpy.array(inc.variables["lon"][:],numpy.float64)
   ########## this shifted lons will be used later
   lons_shift=lons.tolist()
   lons_shift.reverse()
-  lons_shift=-1.0*Numeric.array(lons_shift,Numeric.Float64)
+  lons_shift=-1.0*numpy.array(lons_shift,numpy.float64)
   if ovwr:
     nc.createDimension("DO_1_1_time",hvar.shape[0])
     nc.createDimension("DO_1_1_lev",hvar.shape[1])
@@ -798,24 +797,24 @@ def testnewdiffoperators(nc,ovwr):
     # Test the gradient operator
     ###########################
     hgrad=pyclimate.diffoperators.HGRADIENT(lats,lons,1,pbc)
-    nx=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    ny=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    n3x=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    n3y=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    nx=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    ny=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    n3x=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    n3y=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        field=Numeric.array(hvar[irec,ilev],'d')
+        field=numpy.array(hvar[irec,ilev],'d')
         thegrad=hgrad.hgradient(field)
         nx[irec,ilev,:,:]=thegrad[0]
         ny[irec,ilev,:,:]=thegrad[1]
-      field=Numeric.array(hvar[irec],'d')
+      field=numpy.array(hvar[irec],'d')
       thegrad=hgrad.hgradient(field)
       n3x[irec]=thegrad[0]
       n3y[irec]=thegrad[1]
-    field=Numeric.array(hvar[:,:,:,:],'d')
+    field=numpy.array(hvar[:,:,:,:],'d')
     n4x,n4y=hgrad.hgradient(field)
     if pbc:
       namex="DONablax_1_1_PBC"
@@ -835,29 +834,29 @@ def testnewdiffoperators(nc,ovwr):
     # Test the divergence
     ###########################################
     hdiv=pyclimate.diffoperators.HDIVERGENCE(lats,lons,1,pbc)
-    d=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    d3=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    d=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    d3=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        ufield=Numeric.array(uvar[irec,ilev],'d')
-        vfield=Numeric.array(vvar[irec,ilev],'d')
+        ufield=numpy.array(uvar[irec,ilev],'d')
+        vfield=numpy.array(vvar[irec,ilev],'d')
         thediv=hdiv.hdivergence(ufield,vfield)
         d[irec,ilev,:,:]=thediv
-      ufield=Numeric.array(uvar[irec],'d')
-      vfield=Numeric.array(vvar[irec],'d')
+      ufield=numpy.array(uvar[irec],'d')
+      vfield=numpy.array(vvar[irec],'d')
       thediv=hdiv.hdivergence(ufield,vfield)
       d3[irec]=thediv
-    ufield=Numeric.array(uvar[:,:,:,:],'d')
-    vfield=Numeric.array(vvar[:,:,:,:],'d')
+    ufield=numpy.array(uvar[:,:,:,:],'d')
+    vfield=numpy.array(vvar[:,:,:,:],'d')
     d4=hdiv.hdivergence(ufield,vfield)
     if pbc:
       name="DODivergence_1_1_PBC"
     else:
       name="DODivergence_1_1_NPBC"
-    # Save them as Float, the reference file is growing
+    # Save them as float, the reference file is growing
     # "too" much
     if ovwr:
       compareRMSvals(nc,name,d.astype('f'),ovwr,dims)
@@ -868,29 +867,29 @@ def testnewdiffoperators(nc,ovwr):
     # Test the curl
     ###########################################
     vcurl=pyclimate.diffoperators.VCURL(lats,lons,1,pbc)
-    c=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    c3=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    c=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    c3=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        ufield=Numeric.array(uvar[irec,ilev],'d')
-        vfield=Numeric.array(vvar[irec,ilev],'d')
+        ufield=numpy.array(uvar[irec,ilev],'d')
+        vfield=numpy.array(vvar[irec,ilev],'d')
         thecurl=vcurl.vcurl(ufield,vfield)
         c[irec,ilev,:,:]=thecurl
-      ufield=Numeric.array(uvar[irec],'d')
-      vfield=Numeric.array(vvar[irec],'d')
+      ufield=numpy.array(uvar[irec],'d')
+      vfield=numpy.array(vvar[irec],'d')
       thecurl=vcurl.vcurl(ufield,vfield)
       c3[irec]=thecurl
-    ufield=Numeric.array(uvar[:,:,:,:],'d')
-    vfield=Numeric.array(vvar[:,:,:,:],'d')
+    ufield=numpy.array(uvar[:,:,:,:],'d')
+    vfield=numpy.array(vvar[:,:,:,:],'d')
     c4=vcurl.vcurl(ufield,vfield)
     if pbc:
       name="DOVCurl_1_1_PBC"
     else:
       name="DOVCurl_1_1_NPBC"
-    # Save them as Float, the reference file is growing
+    # Save them as float, the reference file is growing
     # "too" much
     if ovwr:
       compareRMSvals(nc,name,c.astype('f'),ovwr,dims)
@@ -907,24 +906,24 @@ def testnewdiffoperators(nc,ovwr):
     # Test the gradient operator
     ###########################
     hgrad_shift=pyclimate.diffoperators.HGRADIENT(lats,lons_shift,1,pbc)
-    nx_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    ny_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    n3x_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    n3y_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    nx_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    ny_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    n3x_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    n3y_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        field=Numeric.array(hvar[irec,ilev],'d')
+        field=numpy.array(hvar[irec,ilev],'d')
         thegrad_shift=hgrad_shift.hgradient(field)
         nx_shift[irec,ilev,:,:]=thegrad_shift[0]
         ny_shift[irec,ilev,:,:]=thegrad_shift[1]
-      field=Numeric.array(hvar[irec],'d')
+      field=numpy.array(hvar[irec],'d')
       thegrad_shift=hgrad_shift.hgradient(field)
       n3x_shift[irec]=thegrad_shift[0]
       n3y_shift[irec]=thegrad_shift[1]
-    field=Numeric.array(hvar[:,:,:,:],'d')
+    field=numpy.array(hvar[:,:,:,:],'d')
     n4x_shift,n4y_shift=hgrad_shift.hgradient(field)
     if pbc:
       namex="DONablax_1_1_PBC"
@@ -940,23 +939,23 @@ def testnewdiffoperators(nc,ovwr):
     # Test the divergence
     ###########################################
     hdiv_shift=pyclimate.diffoperators.HDIVERGENCE(lats,lons_shift,1,pbc)
-    d_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    d3_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    d_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    d3_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        ufield=Numeric.array(uvar[irec,ilev],'d')
-        vfield=Numeric.array(vvar[irec,ilev],'d')
+        ufield=numpy.array(uvar[irec,ilev],'d')
+        vfield=numpy.array(vvar[irec,ilev],'d')
         thediv_shift=hdiv_shift.hdivergence(ufield,vfield)
         d_shift[irec,ilev,:,:]=thediv_shift
-      ufield=Numeric.array(uvar[irec],'d')
-      vfield=Numeric.array(vvar[irec],'d')
+      ufield=numpy.array(uvar[irec],'d')
+      vfield=numpy.array(vvar[irec],'d')
       thediv_shift=hdiv_shift.hdivergence(ufield,vfield)
       d3_shift[irec]=thediv_shift
-    ufield=Numeric.array(uvar[:,:,:,:],'d')
-    vfield=Numeric.array(vvar[:,:,:,:],'d')
+    ufield=numpy.array(uvar[:,:,:,:],'d')
+    vfield=numpy.array(vvar[:,:,:,:],'d')
     d4_shift=hdiv_shift.hdivergence(ufield,vfield)
     if pbc:
       name="DODivergence_1_1_PBC"
@@ -969,23 +968,23 @@ def testnewdiffoperators(nc,ovwr):
     # Test the curl
     ###########################################
     vcurl_shift=pyclimate.diffoperators.VCURL(lats,lons_shift,1,pbc)
-    c_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
-    c3_shift=Numeric.zeros((2,2)+hvar.shape[2:],'d')
+    c_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
+    c3_shift=numpy.zeros((2,2)+hvar.shape[2:],'d')
     # First of all, compute the operators layer by layer, as done
     # in previous version of PyClimate, and which has already
     # been tested
     for irec in xrange(2):
       for ilev in xrange(2):
-        ufield=Numeric.array(uvar[irec,ilev],'d')
-        vfield=Numeric.array(vvar[irec,ilev],'d')
+        ufield=numpy.array(uvar[irec,ilev],'d')
+        vfield=numpy.array(vvar[irec,ilev],'d')
         thecurl_shift=vcurl_shift.vcurl(ufield,vfield)
         c_shift[irec,ilev,:,:]=thecurl_shift
-      ufield=Numeric.array(uvar[irec],'d')
-      vfield=Numeric.array(vvar[irec],'d')
+      ufield=numpy.array(uvar[irec],'d')
+      vfield=numpy.array(vvar[irec],'d')
       thecurl_shift=vcurl_shift.vcurl(ufield,vfield)
       c3_shift[irec]=thecurl_shift
-    ufield=Numeric.array(uvar[:,:,:,:],'d')
-    vfield=Numeric.array(vvar[:,:,:,:],'d')
+    ufield=numpy.array(uvar[:,:,:,:],'d')
+    vfield=numpy.array(vvar[:,:,:,:],'d')
     c4_shift=vcurl_shift.vcurl(ufield,vfield)
     if pbc:
       name="DOVCurl_1_1_PBC"
@@ -1007,7 +1006,7 @@ def testfasterMCtests(nc,ovwr):
   print "*"*50
   eof=pyclimate.svdeofs
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  hgtdata=Numeric.array(inc.variables["hgt"][:,1,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2])
   hgtdata.shape=newshape
@@ -1028,7 +1027,7 @@ def testfasterMCtests(nc,ovwr):
   s=pyclimate.svd
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
-  hgtdata=Numeric.array(inc.variables["hgt"][:,1,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2])
   hgtdata.shape=newshape
@@ -1052,13 +1051,13 @@ def testanalogs(nc,ov):
   SMOOTHING=2
   BASESAMPLES=10
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  hgtdata=Numeric.array(inc.variables["hgt"][:,:,:,:],Numeric.Float64)
-  hgtbase=Numeric.array(hgtdata[-BASESAMPLES:,:,:,:])
-  hgtdata=Numeric.array(hgtdata[:-BASESAMPLES,:,:,:])
+  hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
+  hgtbase=numpy.array(hgtdata[-BASESAMPLES:,:,:,:])
+  hgtdata=numpy.array(hgtdata[:-BASESAMPLES,:,:,:])
   ANA=pyclimate.analog.EOFANALOG(hgtdata,neofs=4,pcscaling=1)
   AAVE=pyclimate.analog.ANALOGAverager(ANA,hgtbase,smoothing=SMOOTHING)
   recfield=AAVE.returnWeightedAverage()
-  theweights=Numeric.array(AAVE.weights)
+  theweights=numpy.array(AAVE.weights)
   if ov:
     nc.createDimension("analog_h_basesamples",BASESAMPLES)
     nc.createDimension("analog_h_poolsamples",len(hgtdata)-BASESAMPLES)
@@ -1069,10 +1068,10 @@ def testanalogs(nc,ov):
 
 def testNHArray(nc,ov):
   inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
-  hgtdata=Numeric.array(inc.variables["hgt"][:,1,:,:],Numeric.Float64)
+  hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   inc.close()
   samples = len(hgtdata)
-  channels = Numeric.multiply.reduce(hgtdata.shape[1:])
+  channels = numpy.multiply.reduce(hgtdata.shape[1:])
   bins = 20
   nha = pyclimate.NHArray.NHArray(5170, 5800, bins, channels)
   for i in range(len(hgtdata)):

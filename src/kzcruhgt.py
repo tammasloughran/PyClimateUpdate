@@ -22,18 +22,18 @@
 
 import pyclimate.ncstruct 
 import pyclimate.KZFilter
-import numpy as Numeric 
-from netCDF4 import Dataset
+import numpy
+import Scientific.IO.NetCDF 
 
 kzf=pyclimate.KZFilter.KZFilter(3,3)
 
 
-a=Dataset("cru_hgt.nc")
+a=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
 
 dims=("time","Z","lat","lon")
 onc=nccopystruct("kzcruhgt.tmp.nc",a,dims,dims,dims[1:])
 onc.history=""
-kzhgt=onc.createVariable("kzhgt",Numeric.int16,dims)
+kzhgt=onc.createVariable("kzhgt",numpy.int16,dims)
 kzhgt.longname="Filtered geopotential - KZ(%3d,%3d) - Cutoff frequency:%10.6f"\
 		%(kzf.iterations,kzf.points,kzf.getcutofffrequency(),)
 
@@ -42,10 +42,10 @@ it=a.variables["time"]
 records=it.shape[0]
 orec=0
 for irec in xrange(records):
-	hfield=Numeric.array(hgt[irec],Numeric.float64)
+	hfield=numpy.array(hgt[irec],numpy.float64)
 	filhgt=kzf.getfiltered(hfield)
 	if filhgt!=None:
-		kzhgt[orec]=filhgt.astype(Numeric.int16)
+		kzhgt[orec]=filhgt.astype(numpy.int16)
 		onc.variables["time"][orec]=it[irec]
 		orec=orec+1
 		onc.sync()

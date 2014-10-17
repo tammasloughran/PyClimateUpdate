@@ -22,7 +22,7 @@
 # 
 # jff20010402
 # removed the from ... import sentence..
-import numpy as Numeric
+import numpy
 import pyclimate.pyclimateexcpt
 
 def _buildcomplex(c,fmt):
@@ -53,7 +53,7 @@ def writedat(fname, matrix, header="", formatstring="%g"):
   """
   theshape=matrix.shape
   tcode=matrix.dtype.char
-  iscomplex=(tcode==Numeric.complex64 or tcode==Numeric.complex128)
+  iscomplex=(tcode==numpy.complex or tcode==numpy.complex64)
   formatstring = formatstring.strip()
   if len(theshape)>2:
     raise pyclimate.pyclimateexcpt.WrongWriteDimensions(len(theshape))

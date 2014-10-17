@@ -24,7 +24,7 @@
 # Juan Zubillaga, 20000324
 # Jesus Fernandez, 20000724
 
-import numpy as Numeric
+import numpy
 
 class LinearFilter:
   """Parent class to implementing linear filtering
@@ -46,7 +46,7 @@ class LinearFilter:
     self.multicoefs=None
     self.buffer=None
 
-  def getfiltered(self,ifield,tcode=Numeric.float64):
+  def getfiltered(self,ifield,tcode=numpy.float64):
     """Get a filtered record out of a raw one
 
     This method returns 'None' while not enough records have been passed to
@@ -62,31 +62,31 @@ class LinearFilter:
 
     Optional argument:
 
-      'tcode' -- Numeric typecode for the internal cumputations
+      'tcode' -- numpy typecode for the internal cumputations
     """
     #######################################
     # The first time, initialize the buffer
     #######################################
     if self.target==0:
       # Initialize the input buffer
-      self.buffer=Numeric.zeros((self.length,)+ifield.shape,tcode)
-      # And create a Numeric array for the
+      self.buffer=numpy.zeros((self.length,)+ifield.shape,tcode)
+      # And create a numpy array for the
       # coefficients with the needed shape
-      self.multicoefs=Numeric.zeros(self.buffer.shape,Numeric.float64)
+      self.multicoefs=numpy.zeros(self.buffer.shape,numpy.float64)
       for irec in xrange(self.length):
         self.multicoefs[irec]=self.multicoefs[irec]+self.coefs[irec]
     #########################################################
     # If the buffer needs being filled, do it and return None
     #########################################################
     if self.target<self.length:
-      self.buffer[self.target]=Numeric.array(ifield,tcode)
+      self.buffer[self.target]=numpy.array(ifield,tcode)
       ################################################
       # The buffer is filled for the first time, 
       # so fill it, DON'T update self.target, 
       # it is not needed anymore, return a valid value
       ################################################
       if self.target==self.length-1:
-        self.buffer[self.target]=Numeric.array(ifield,tcode)
+        self.buffer[self.target]=numpy.array(ifield,tcode)
         self.target=self.target+1
         return self.__thevalues()
       else:
@@ -96,11 +96,11 @@ class LinearFilter:
         ############################################
         self.target=self.target+1
         return None
-    self.buffer=Numeric.concatenate((self.buffer[1:],[ifield]))
+    self.buffer=numpy.concatenate((self.buffer[1:],[ifield]))
     return self.__thevalues()
 
   # This returns the values taking into account that the buffer is
   # already complete but it can have LOTS of dimensions, so, be
   # extremely careful with this function.... if you touch it
   def __thevalues(self):
-    return Numeric.add.reduce(self.multicoefs*self.buffer)
+    return numpy.add.reduce(self.multicoefs*self.buffer)

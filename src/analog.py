@@ -33,7 +33,7 @@
 
 # jff20010621
 
-import numpy as Numeric
+import numpy
 import pyclimate.tools
 import pyclimate.mvarstatools
 import pyclimate.svdeofs
@@ -44,8 +44,9 @@ import math, os
 ptools = pyclimate.tools
 pmvstools = pyclimate.mvarstatools
 pex = pyclimate.pyclimateexcpt
-mm = Numeric.dot
-NA = Numeric.newaxis
+def mm(array1,array2):
+  return numpy.matrix(array1)*numpy.matrix(array2)
+NA = numpy.newaxis
 
 def get_weights(distarray,weightexp):
   """Returns the weight values for each analog 
@@ -63,7 +64,7 @@ def get_weights(distarray,weightexp):
   """
   rval = distarray ** weightexp
   rval = 1./rval
-  rval = rval / Numeric.add.reduce(rval,1)[:,NA]
+  rval = rval / numpy.add.reduce(rval,1)[:,NA]
   return rval 
 
 class __ANALOG:            
@@ -87,8 +88,8 @@ class __ANALOG:
     thecoords = self.getCoords(field) 
     sqres = thecoords[NA,:] - self.P
     sqres = sqres * sqres
-    sqres = Numeric.add.reduce(sqres,1)
-    theindex = Numeric.argmin(sqres)
+    sqres = numpy.add.reduce(sqres,1)
+    theindex = numpy.argmin(sqres)
     self.sqres = sqres[theindex]
     return theindex
 
@@ -97,9 +98,9 @@ class __ANALOG:
     thecoords = self.getCoords(field) 
     sqres = thecoords[NA,:] - self.P
     sqres = sqres * sqres
-    sqres = Numeric.add.reduce(sqres,1)
-    theindices = Numeric.argsort(sqres).tolist()[:n] 
-    self.sqres = Numeric.array(Numeric.take(sqres, theindices))
+    sqres = numpy.add.reduce(sqres,1)
+    theindices = numpy.argsort(sqres).tolist()[:n] 
+    self.sqres = numpy.array(numpy.take(sqres, theindices))
     return theindices
 
   def __len__(self):
@@ -135,20 +136,20 @@ class EOFANALOG(__ANALOG):
     self.P = self.EOFobj.pcs(self.pcscaling)[:,:self.neofs]
     self.L = self.EOFobj.lambdas[:self.neofs]
     self.E = self.EOFobj.eofs(self.pcscaling)[...,:self.neofs]
-    self.flatE = Numeric.array(self.E[...,:])
+    self.flatE = numpy.array(self.E[...,:])
     self.flatE.shape = (self.EOFobj.channels, self.neofs)
 
   def getCoords(self, field):
     "Returns the coordinates of 'field' in the PCA space"
     if field.shape != self.originalshape:
       raise pex.ANALOGNoMatchingShape(field.shape, self.originalshape)
-    field = Numeric.ravel(field)
+    field = numpy.ravel(field)
     field.shape = (1, len(field))
     if self.pcscaling == 0:
-      return Numeric.ravel(mm(field, self.flatE)) 
+      return numpy.ravel(mm(field, self.flatE)) 
     elif self.pcscaling == 1:
       inverseEtranspose = self.flatE / self.L[NA,:]
-      return Numeric.ravel(mm(field, inverseEtranspose))
+      return numpy.ravel(mm(field, inverseEtranspose))
 #######################################
 # Backward compatibility definitions  #
 # Do not use!                         #
@@ -191,9 +192,9 @@ class CCAANALOG(__ANALOG):
     "Returns the coordinates of 'field' in the CCA space"
     if field.shape != self.originalshape:
       raise pex.ANALOGNoMatchingShape(field.shape, self.originalshape)
-    rval = Numeric.ravel(field)
+    rval = numpy.ravel(field)
     rval.shape = (1, len(rval))
-    rval = Numeric.ravel(mm(rval, self.CCAobj.p_adjoint))
+    rval = numpy.ravel(mm(rval, self.CCAobj.p_adjoint))
     if not self.spherized:
       rval = rval * self.CCAobj.corr**2
     return rval
@@ -233,14 +234,14 @@ class ANALOGSelector:
     self.patternlenght = len(self.patterns)
     self.smoothing = smoothing
     self.analogrecords = []
-    distances = Numeric.zeros((self.patternlenght,self.smoothing), 'd')
-    self.weights = Numeric.zeros((self.patternlenght,self.smoothing), 'd')
+    distances = numpy.zeros((self.patternlenght,self.smoothing), 'd')
+    self.weights = numpy.zeros((self.patternlenght,self.smoothing), 'd')
     for irec in range(len(self.patterns)):
       analogidx = ANALOGobj.findNAnalogRecords(
         self.patterns[irec], 
         self.smoothing
       )
-      distances[irec] = Numeric.sqrt(ANALOGobj.sqres)
+      distances[irec] = numpy.sqrt(ANALOGobj.sqres)
       self.analogrecords = self.analogrecords + analogidx
     self.weights = get_weights(distances, weightexp)
     if report: 
@@ -272,10 +273,10 @@ class ANALOGSelector:
 
     """
     if not field: field = self.ANALOGobj.dataset 
-    aanalogrecords = Numeric.array(self.analogrecords)
-    ave = Numeric.zeros((self.patternlenght,)+field.shape[1:], 'd')
+    aanalogrecords = numpy.array(self.analogrecords)
+    ave = numpy.zeros((self.patternlenght,)+field.shape[1:], 'd')
     for i in range(self.smoothing):
-      ave = ave + Numeric.take(field,aanalogrecords[i::self.smoothing])
+      ave = ave + numpy.take(field,aanalogrecords[i::self.smoothing])
     return ave / float(self.smoothing)
 
   def returnWeightedAverage(self, field=None):
@@ -289,12 +290,12 @@ class ANALOGSelector:
 
     """
     field = field or self.ANALOGobj.dataset 
-    aanalogrecords = Numeric.array(self.analogrecords)
-    ave = Numeric.zeros((self.patternlenght,)+field.shape[1:], 'd')
+    aanalogrecords = numpy.array(self.analogrecords)
+    ave = numpy.zeros((self.patternlenght,)+field.shape[1:], 'd')
     for i in range(self.smoothing):
       ave = (ave + 
-        Numeric.take(field,aanalogrecords[i::self.smoothing]) *
-        Numeric.reshape(
+        numpy.take(field,aanalogrecords[i::self.smoothing]) *
+        numpy.reshape(
           self.weights[:,i],
           (self.patternlenght,)+len(field.shape[1:])*(1,)
         )
@@ -319,7 +320,7 @@ class ANALOGSelector:
     field = field or self.ANALOGobj.dataset
     if len(field) != len(self.ANALOGobj.dataset):
       raise pex.ANALOGNoMatchingLength(len(field),len(self.ANALOGobj.dataset))
-    return Numeric.take(field,self.analogrecords)
+    return numpy.take(field,self.analogrecords)
   
   def __getitem__(self, idx):
     "Slide access to the analog record indices"
@@ -334,7 +335,7 @@ ANALOGAverager = ANALOGSelector       #
 #######################################
 
 if __name__ == "__main__":
-  dataset = Numeric.array(
+  dataset = numpy.array(
     [[1.2, 3.4, 5.7, 9.0],
      [6.8, 9.7,-4.8, 7.2],
      [6.9, 4.7, 2.8, 1.2],
@@ -344,10 +345,10 @@ if __name__ == "__main__":
      [1.1,-8.8, 0.9, 6.3]]
   )
 #  dataset.shape = (3,2,2)
-#  field = Numeric.array([1.2,-9.8, 1.1, 7.3])
+#  field = numpy.array([1.2,-9.8, 1.1, 7.3])
   field = pmvstools.center(dataset)
   field = field[2]
-  field = Numeric.ravel(field)
+  field = numpy.ravel(field)
   A = ANALOG(dataset,3)
   print "dataset\n======\n", A.dataset
   print "originalshape\n======\n", A.originalshape

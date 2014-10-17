@@ -27,15 +27,14 @@
 #
 # Jon Saenz, Jesus Fernandez, June 2001, while at GKSS
 
-import numpy as Numeric
-import numpy.linalg as LinearAlgebra
+import numpy
 import pyclimate.tools
 import pyclimate.mctest
 import pyclimate.pyclimateexcpt
 import pyclimate.mvarstatools
 
-LA=LinearAlgebra
-NA=Numeric.newaxis
+
+NA=numpy.newaxis
 ptools=pyclimate.tools
 pmvstools=pyclimate.mvarstatools
 mctest=pyclimate.mctest
@@ -43,10 +42,10 @@ pex=pyclimate.pyclimateexcpt
 
 class HDSEOFs:
   "Base class holding the common operations for both HDSEOF constructors"
-  def Eigenvalues(self,svdsolver=LA.svd):
+  def Eigenvalues(self,svdsolver=numpy.linalg.svd):
     "Eigenvalues of the covariance (correlation) matrix"
     if not self.ready:
-      self.E,self.L,c=svdsolver(self.S)
+      self.E,self.L,c=svdsolver(self.S,full_matrices=0)
       self.ready=1
     return self.L
 
@@ -54,13 +53,13 @@ class HDSEOFs:
     if not self.ready:
       c=self.Eigenvalues()
 
-  def VarianceFraction(self,svdfunc=LA.svd):
+  def VarianceFraction(self,svdfunc=numpy.linalg.svd):
     "Total variance fraction accounted for each principal mode"
-    l=self.Eigenvalues(svdfunc)
-    return l/Numeric.add.reduce(l)
+    l=self.Eigenvalues(svdfunc,full_matrices=0)
+    return l/numpy.add.reduce(l)
 
   def Eigenvectors(self,Neofs,pcscaling=0,
-                   svdsolver=LA.svd):
+                   svdsolver=numpy.linalg.svd):
     """EOFs, the eigenvectors of the covariance (correlation) matrix
 
     Arguments:
@@ -77,7 +76,7 @@ class HDSEOFs:
                      Defaults to LinearAlgebra's singular_value_decomposition.
     """
     if not self.ready:
-      self.E,self.L,c=svdsolver(self.S)
+      self.E,self.L,c=svdsolver(self.S,full_matrices=0)
       self.ready=1
     if pcscaling == 0:
       return ptools.deunshape(
@@ -86,7 +85,7 @@ class HDSEOFs:
       )
     if pcscaling == 1:
       return ptools.deunshape(
-        self.E[:,:Neofs] * Numeric.sqrt(self.L)[NA,:Neofs], 
+        self.E[:,:Neofs] * numpy.sqrt(self.L)[NA,:Neofs], 
         self.originalshape+(Neofs,)
       )
     else:
@@ -103,33 +102,33 @@ class HDSEOFs:
   def PCs(self,Neofs,iterator,irecord,pcscaling=0):
     "Principal components"
     self._forceReady()
-    anomaly=Numeric.ravel(iterator[irecord])-self.average
+    anomaly=numpy.ravel(iterator[irecord])-self.average
     if pcscaling == 0:
-      return Numeric.add.reduce(anomaly[:,NA]*self.E[:,:Neofs])
+      return numpy.add.reduce(anomaly[:,NA]*self.E[:,:Neofs])
     if pcscaling == 1:
-      return Numeric.ravel(
-        Numeric.add.reduce(anomaly[:,NA]*self.E[:,:Neofs]) /
-        Numeric.sqrt(self.L)[NA,:Neofs]
+      return numpy.ravel(
+        numpy.add.reduce(anomaly[:,NA]*self.E[:,:Neofs]) /
+        numpy.sqrt(self.L)[NA,:Neofs]
       )
     else:
       raise pex.ScalingError(pcscaling)
 
   def WholePCs(self,Neofs,iterator,pcscaling=0):
     "Principal components for all records"
-    rval=Numeric.zeros((self.records,Neofs),'d')
+    rval=numpy.zeros((self.records,Neofs),'d')
     for i in self.therecords:
       rval[i,:]=self.PCs(Neofs,iterator,i,pcscaling)
     return rval
 
   def NorthTest(self):
     "North error bars"
-    factor=Numeric.sqrt(2./self.records)
-    errors=Numeric.array(self.Eigenvalues())*factor
+    factor=numpy.sqrt(2./self.records)
+    errors=numpy.array(self.Eigenvalues())*factor
     return errors
 
   def MCTest(self,Neofs,iterator,subsamples,length):
     "Monte Carlo test on the congruence"
-    theccoefs=Numeric.zeros((subsamples,)+(Neofs,),'d')
+    theccoefs=numpy.zeros((subsamples,)+(Neofs,),'d')
     for isample in xrange(subsamples):
       subslist=mctest.getrandomsubsample(length,self.records)
       he=DIHDSEOFs(iterator,therecords=subslist)
@@ -153,8 +152,8 @@ class SIHDSEOFs(HDSEOFs):
 
     Optional arguments:
 
-      'tcode' -- Numeric typecode for the internal computations. 
-                 Defaults to 'float64'.
+      'tcode' -- numpy typecode for the internal computations. 
+                 Defaults to 'Float64'.
 
       'therecords' -- List of records to be taken. Defaults to the 
                       whole data set.
@@ -164,32 +163,32 @@ class SIHDSEOFs(HDSEOFs):
                       (corrmatrix=1).
     """
     self.originalshape=iterator[0].shape
-    self.ashape=Numeric.array(self.originalshape,'i')
+    self.ashape=numpy.array(self.originalshape,'i')
     if not therecords:
       self.records=len(iterator)
       self.therecords=range(self.records)
     else:
       self.records=len(therecords)
       self.therecords=therecords
-    self.items=Numeric.multiply.reduce(self.ashape)
+    self.items=numpy.multiply.reduce(self.ashape)
     self.typecode=tcode
     self.corrmatrix=corrmatrix
-    self.average=Numeric.zeros((self.items,),self.typecode)
-    self.S=Numeric.zeros((self.items,self.items),self.typecode)
+    self.average=numpy.zeros((self.items,),self.typecode)
+    self.S=numpy.zeros((self.items,self.items),self.typecode)
     for i in self.therecords:
-      field=Numeric.ravel(iterator[i]) 
-      Numeric.add(self.average,field,self.average)
-      Numeric.add(self.S,Numeric.multiply.outer(field,field),self.S)
+      field=numpy.ravel(iterator[i]) 
+      numpy.add(self.average,field,self.average)
+      numpy.add(self.S,numpy.multiply.outer(field,field),self.S)
     ##################################################
-    # Force the use of float64 in S
+    # Force the use of Float64 in S
     #################################################
-    Numeric.multiply(self.average,1.0/self.records,self.average).astype(self.typecode)
-    Numeric.multiply(self.S,1.0/float(self.records),self.S)
-    Numeric.add(self.S,-Numeric.multiply.outer(self.average,self.average),self.S)
+    numpy.multiply(self.average,1.0/self.records,self.average).astype(self.typecode)
+    numpy.multiply(self.S,1.0/float(self.records),self.S)
+    numpy.add(self.S,-numpy.multiply.outer(self.average,self.average),self.S)
     if self.corrmatrix:
-      stds=Numeric.diagonal(self.S)
-      stds=Numeric.sqrt(stds)
-      Numeric.multiply(self.S,1./Numeric.multiply.outer(stds,stds),self.S)
+      stds=numpy.diagonal(self.S)
+      stds=numpy.sqrt(stds)
+      numpy.multiply(self.S,1./numpy.multiply.outer(stds,stds),self.S)
     self.ready=0
 
 
@@ -208,8 +207,8 @@ class DIHDSEOFs(HDSEOFs):
 
     Optional arguments:
 
-      'tcode' -- Numeric typecode for the internal computations. 
-                 Defaults to 'float64'.
+      'tcode' -- numpy typecode for the internal computations. 
+                 Defaults to 'Float64'.
 
       'therecords' -- List of records to be taken. Defaults to the 
                       whole data set.
@@ -219,7 +218,7 @@ class DIHDSEOFs(HDSEOFs):
                       (corrmatrix=1).
     """
     self.originalshape=iterator[0].shape
-    self.ashape=Numeric.array(self.originalshape,'i')
+    self.ashape=numpy.array(self.originalshape,'i')
     self.records=len(iterator)
     if not therecords:
       self.records=len(iterator)
@@ -227,24 +226,24 @@ class DIHDSEOFs(HDSEOFs):
     else:
       self.records=len(therecords)
       self.therecords=therecords
-    self.items=Numeric.multiply.reduce(self.ashape)
+    self.items=numpy.multiply.reduce(self.ashape)
     self.typecode=tcode
     self.corrmatrix=corrmatrix
-    self.average=Numeric.zeros((self.items,),self.typecode)
+    self.average=numpy.zeros((self.items,),self.typecode)
     for i in self.therecords:
-      self.average=self.average+Numeric.ravel(iterator[i])
+      self.average=self.average+numpy.ravel(iterator[i])
     self.average=(self.average/self.records).astype(self.typecode)
-    self.S=Numeric.zeros((self.items,self.items),'d')
+    self.S=numpy.zeros((self.items,self.items),'d')
     for i in self.therecords:
-      residual=Numeric.ravel(iterator[i])-self.average
-      Numeric.add(self.S,Numeric.multiply.outer(residual,residual),self.S)
+      residual=numpy.ravel(iterator[i])-self.average
+      numpy.add(self.S,numpy.multiply.outer(residual,residual),self.S)
     ##################################################
-    # Force the use of float64 in S
+    # Force the use of Float64 in S
     #################################################
-    Numeric.multiply(self.S,1./float(self.records),self.S)
+    numpy.multiply(self.S,1./float(self.records),self.S)
     if self.corrmatrix:
-      stds=Numeric.diagonal(self.S)
-      stds=Numeric.sqrt(stds)
-      Numeric.multiply(self.S,1./Numeric.multiply.outer(stds,stds),self.S)
+      stds=numpy.diagonal(self.S)
+      stds=numpy.sqrt(stds)
+      numpy.multiply(self.S,1./numpy.multiply.outer(stds,stds),self.S)
     self.ready=0
 

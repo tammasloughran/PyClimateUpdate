@@ -37,15 +37,14 @@ import pyclimate.tools
 import pyclimate.mctest
 import pyclimate.NHArray
 import pyclimate.pyclimateexcpt
-import numpy.linalg as LinearAlgebra 
-import numpy as Numeric
-import numpy.random as RandomArray
+import numpy
 
 ptools = pyclimate.tools
 mtools = pyclimate.mvarstatools
-mm = Numeric.dot
-SVD = LinearAlgebra.svd
-NA = Numeric.newaxis
+SVD = numpy.linalg.svd
+NA = numpy.newaxis
+def mm(array1,array2):
+  return numpy.matrix(array1)*numpy.matrix(array2)
 
 class BPCCA:
   MCTESTMASK_NBINS_DIVISOR = 10
@@ -89,8 +88,8 @@ class BPCCA:
     if not self.zfield2d:
       rightfield, self.oldzshape = ptools.unshape(rightfield)
     # First the PCA pre-filter
-    self.sPCA = pyclimate.svdeofs.SVDEOFs(Numeric.array(leftfield, 'd'))
-    self.zPCA = pyclimate.svdeofs.SVDEOFs(Numeric.array(rightfield, 'd'))
+    self.sPCA = pyclimate.svdeofs.SVDEOFs(numpy.array(leftfield, 'd'))
+    self.zPCA = pyclimate.svdeofs.SVDEOFs(numpy.array(rightfield, 'd'))
     # Restriction to an EOFs subspace...
     if not retainedeofs:
       self.n1 = ptools.getneofs(self.sPCA.eigenvalues()) 
@@ -105,9 +104,9 @@ class BPCCA:
     lbdz = self.zPCA.eigenvalues()[:self.n2]  # n2
     eofs = self.sPCA.eofs(1)[:,:self.n1]      # ns x n1
     eofz = self.zPCA.eofs(1)[:,:self.n2]      # nz x n2
-    covpcsz = mm(Numeric.transpose(pcs), pcz)/float(len(pcs))
-    self.left, self.corr, t_right = SVD(covpcsz)
-    self.right = Numeric.transpose(t_right)
+    covpcsz = mm(numpy.transpose(pcs), pcz)/float(len(pcs))
+    self.left, self.corr, t_right = SVD(covpcsz,full_matrices=0)
+    self.right = numpy.transpose(t_right)
     # Obtaining the patterns and coefficients...
     self.p_adjoint = mm(eofs/lbds[NA,:], self.left)     # ns x n0
     self.q_adjoint = mm(eofz/lbdz[NA,:], self.right)    # nz x n0
@@ -120,16 +119,16 @@ class BPCCA:
     "Reconstructs the original fields with the desired number ('nccps') of canonical patterns"
     if nccps > self.n0:
       raise pyclimate.pyclimateexcpt.TooBigIntParameter("nccps",nccps,self.n0)
-    srval = mm(self.a[:,:nccps], Numeric.transpose(self.p[:,:nccps]))
-    zrval = mm(self.b[:,:nccps], Numeric.transpose(self.q[:,:nccps]))
+    srval = mm(self.a[:,:nccps], numpy.transpose(self.p[:,:nccps]))
+    zrval = mm(self.b[:,:nccps], numpy.transpose(self.q[:,:nccps]))
     if not self.sfield2d: srval.shape = self.oldsshape
     if not self.zfield2d: zrval.shape = self.oldzshape
     return srval, zrval
 
   def varianceFractions(self):
     "Returns a tuple with the left and right patterns explained variance fraction"
-    vars = Numeric.add.reduce(self.p * self.p)
-    varz = Numeric.add.reduce(self.q * self.q)
+    vars = numpy.add.reduce(self.p * self.p)
+    varz = numpy.add.reduce(self.q * self.q)
     return (
       vars / self.sPCA.totalAnomalyVariance(), 
       varz / self.zPCA.totalAnomalyVariance()
@@ -138,21 +137,21 @@ class BPCCA:
   def leftPatterns(self):
     "Returns (along the _last_ dimension) the left canonical patterns"
     if self.sfield2d:
-      return Numeric.array(self.p)
+      return numpy.array(self.p)
     else:
       return ptools.deunshape(self.p, self.oldsshape[1:]+self.p.shape[-1:])
 
   def rightPatterns(self):
     "Returns (along the _last_ dimension) the right canonical patterns"
     if self.zfield2d:
-      return Numeric.array(self.q)
+      return numpy.array(self.q)
     else:
       return ptools.deunshape(self.q, self.oldzshape[1:]+self.q.shape[-1:])
 
   def leftAdjointPatterns(self):
     "Returns (along the _last_ dimension) the left adjoint canonical patterns"
     if self.sfield2d:
-      return Numeric.array(self.p_adjoint)
+      return numpy.array(self.p_adjoint)
     else:
       return ptools.deunshape(
         self.p_adjoint, 
@@ -162,7 +161,7 @@ class BPCCA:
   def rightAdjointPatterns(self):
     "Returns (along the _last_ dimension) the right adjoint canonical patterns"
     if self.zfield2d:
-      return Numeric.array(self.q_adjoint)
+      return numpy.array(self.q_adjoint)
     else:
       return ptools.deunshape(
         self.q_adjoint, 
@@ -171,23 +170,23 @@ class BPCCA:
 
   def leftExpCoeffs(self):
     "Returns the left temporal expansion coefficients"
-    return Numeric.array(self.a)
+    return numpy.array(self.a)
 
   def rightExpCoeffs(self):
     "Returns the right temporal expansion coefficients"
-    return Numeric.array(self.b)
+    return numpy.array(self.b)
 
   def correlation(self):
     "Returns the canonical correlation values"
-    return Numeric.array(self.corr)
+    return numpy.array(self.corr)
 
   def EOFspaceLeftPatterns(self):
     "Returns the left canonical patterns in EOF coordinates"
-    return Numeric.array(self.left)
+    return numpy.array(self.left)
 
   def EOFspaceRightPatterns(self):
     "Returns the right canonical patterns in EOF coordinates"
-    return Numeric.array(self.right)
+    return numpy.array(self.right)
 
   def MCTestMask(self,subsamples,length,prob=0.95,nbins=None,verbose=0):
     """Significance masks for the canonical patterns obtained through a Monte Carlo test.
@@ -221,15 +220,15 @@ class BPCCA:
     rdim = self.q.shape[0] * self.n0
     nbins = nbins or subsamples / self.MCTESTMASK_NBINS_DIVISOR
     # Initializing left numerical histogram array
-    xlow = min(Numeric.ravel(self.p))
-    xup = max(Numeric.ravel(self.p))
+    xlow = min(numpy.ravel(self.p))
+    xup = max(numpy.ravel(self.p))
     extens = (xup-xlow) * self.MCTESTMASK_RANGE_EXTENSION    
     xlow = xlow - extens
     xup = xup + extens
     lnha = pyclimate.NHArray.NHArray(xlow, xup, nbins, ldim)
     # Initializing right numerical histogram array
-    xlow = min(Numeric.ravel(self.q))
-    xup = max(Numeric.ravel(self.q))
+    xlow = min(numpy.ravel(self.q))
+    xup = max(numpy.ravel(self.q))
     extens = (xup-xlow) * self.MCTESTMASK_RANGE_EXTENSION    
     xlow = xlow - extens
     xup = xup + extens
@@ -240,25 +239,25 @@ class BPCCA:
         print "  %d more runs to go..." % (subsamples-isample,)
       sublist = pyclimate.mctest.getrandomsubsample(length,self.records)
       subbpcca = BPCCA(
-        Numeric.take(self.s,sublist), 
-        Numeric.take(self.z,sublist),
+        numpy.take(self.s,sublist), 
+        numpy.take(self.z,sublist),
         self.retainedeofs
       )
       congrusign = mtools.congruence(subbpcca.p, self.p)
-      congrusign = -1 * Numeric.less(congrusign,0) + Numeric.greater(congrusign,0)
-      lnha.Update(Numeric.ravel(subbpcca.p * congrusign[NA,:]))
-      rnha.Update(Numeric.ravel(subbpcca.q * congrusign[NA,:]))
+      congrusign = -1 * numpy.less(congrusign,0) + numpy.greater(congrusign,0)
+      lnha.Update(numpy.ravel(subbpcca.p * congrusign[NA,:]))
+      rnha.Update(numpy.ravel(subbpcca.q * congrusign[NA,:]))
     lthres = lnha.GetRange(prob) 
     rthres = rnha.GetRange(prob) 
     ldelta = lnha.GetDeltaX()
     rdelta = lnha.GetDeltaX()
-    rp = Numeric.ravel(self.p)
+    rp = numpy.ravel(self.p)
     # the mask interval is stripped by [lr]delta to be conservative
-    lmask = Numeric.greater(Numeric.ravel(self.p), lthres[:,0]+ldelta)
-    lmask = lmask * Numeric.less(Numeric.ravel(self.p), lthres[:,1]-ldelta)
-    rmask = Numeric.greater(Numeric.ravel(self.q), rthres[:,0]+rdelta)
-    rmask = rmask * Numeric.less(Numeric.ravel(self.q), rthres[:,1]-rdelta)
-    for i in range(len(Numeric.ravel(self.p))):
+    lmask = numpy.greater(numpy.ravel(self.p), lthres[:,0]+ldelta)
+    lmask = lmask * numpy.less(numpy.ravel(self.p), lthres[:,1]-ldelta)
+    rmask = numpy.greater(numpy.ravel(self.q), rthres[:,0]+rdelta)
+    rmask = rmask * numpy.less(numpy.ravel(self.q), rthres[:,1]-rdelta)
+    for i in range(len(numpy.ravel(self.p))):
       print "%7.2f <%7.2f> %7.2f | %d" % (lthres[i,0], rp[i],lthres[i,1], lmask[i])
     if not self.sfield2d:
       theshape = self.oldsshape[1:] + (self.n0,)
@@ -294,13 +293,13 @@ class BPCCA:
     row the congruence coefficient of each subsample obtained patterns with 
     those obtained for the whole dataset.
     """
-    theleftccoefs = Numeric.zeros((subsamples,)+(self.n0,), 'd')  
-    therightccoefs = Numeric.zeros((subsamples,)+(self.n0,), 'd')  
+    theleftccoefs = numpy.zeros((subsamples,)+(self.n0,), 'd')  
+    therightccoefs = numpy.zeros((subsamples,)+(self.n0,), 'd')  
     for isample in xrange(subsamples):
       sublist = pyclimate.mctest.getrandomsubsample(length,self.records)
       subbpcca = BPCCA(
-        Numeric.take(self.s,sublist), 
-        Numeric.take(self.z,sublist),
+        numpy.take(self.s,sublist), 
+        numpy.take(self.z,sublist),
         self.retainedeofs
       )
       if self.n0 != 1:
@@ -326,13 +325,13 @@ class BPCCA:
     Returns a Numpy array which columns are the different canonical 
     correlations for each MC run.
     """
-    thecorrs = Numeric.zeros((samples,)+(self.n0,), 'd')  
+    thecorrs = numpy.zeros((samples,)+(self.n0,), 'd')  
     for isample in xrange(samples):
-      sublists = RandomArray.permutation(self.records)
-      sublistz = RandomArray.permutation(self.records)
+      sublists = numpy.random.permutation(self.records)
+      sublistz = numpy.random.permutation(self.records)
       subbpcca = BPCCA(
-        Numeric.take(self.s,sublists), 
-        Numeric.take(self.z,sublistz),
+        numpy.take(self.s,sublists), 
+        numpy.take(self.z,sublistz),
         self.retainedeofs
       )
       if self.n0 != 1:

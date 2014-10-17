@@ -32,7 +32,7 @@
 
 ***************/
 #include "Python.h"
-#include "numpy/oldnumeric.h"
+#include "numpy/arrayobject.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -90,7 +90,7 @@ void initanumhist( void )
 
   /* Initialize the Python Module */
   m=Py_InitModule("anumhist",ANHMethods);
-  /* Give access to Numeric Arrays */
+  /* Give access to numpy Arrays */
   import_array();
   /* Intialize the dictionary */
   d=PyModule_GetDict(m);

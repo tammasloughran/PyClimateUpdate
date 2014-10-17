@@ -20,10 +20,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-import numpy.random as RandomArray
 import pyclimate.pyclimateexcpt
+import numpy
 
-RA=RandomArray
 pe=pyclimate.pyclimateexcpt
 
 def getrandomsubsample(items,totalitems,sorted=0):
@@ -43,7 +42,7 @@ def getrandomsubsample(items,totalitems,sorted=0):
   """
 	if items>totalitems:
 		raise pe.MCTestException(items,totalitems)
-	seq=RA.permutation(totalitems)[:items]
+	seq=numpy.random.permutation(totalitems)[:items]
 	if sorted:
 		seq.sort()
 	return seq
@@ -66,7 +65,7 @@ def getrandomsubsample2(items,totalitems,sorted=0):
   """
 	if items>totalitems:
 		raise pe.MCTestException(items,totalitems)
-	perm=RA.permutation(totalitems)
+	perm=numpy.random.permutation(totalitems)
 	seq=perm[:items]
 	noseq=perm[items:]
 	if sorted:

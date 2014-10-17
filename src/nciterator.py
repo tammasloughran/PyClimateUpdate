@@ -20,8 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from netCDF4 import Dataset
-import numpy as Numeric
+import Scientific.IO.NetCDF
+import numpy
 
 class nciterator:
 	"Multiple NetCDF files iterator"
@@ -38,12 +38,12 @@ class nciterator:
 		self.reclist=[]
 		self.totalrecs=0
 		for n in namelist:
-			nc=Dataset(n,"r")
+			nc=Scientific.IO.NetCDF.NetCDFFile(n,"r")
 			self.list.append(nc)
 			it=len(nc.variables[tvarname])
 			self.totalrecs=self.totalrecs+it
 			self.reclist.append(self.totalrecs)
-		self.reclist=Numeric.array(self.reclist)
+		self.reclist=numpy.array(self.reclist)
 
 	def __len__(self):
 		"Total iterator records"
@@ -53,8 +53,8 @@ class nciterator:
 		"Returns an open NetCDFFile where the record 'irec' is located"
 		if irec>=self.totalrecs:
 			raise ValueError
-		passed=Numeric.less_equal(self.reclist,irec)
-		return Numeric.add.reduce(passed)
+		passed=numpy.less_equal(self.reclist,irec)
+		return numpy.add.reduce(passed)
 
 	def getncrec(self,irec,inc):
 		"Returns the 'inc' NetCDFFile record corresponding to the 'irec' global record"

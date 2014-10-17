@@ -21,7 +21,7 @@
 #
 # Jon Saenz, 2002
 
-import numpy as Numeric
+import numpy
 
 ###########################################################
 # Some constants of general use
@@ -41,7 +41,7 @@ def saturation_pressure_over_ice(T):
 
 		'T' -- Temperature (K)
 	"""
-        return es0*Numeric.exp(6293.*(1./T0-1./T)-0.555*Numeric.log(T/T0))
+        return es0*numpy.exp(6293.*(1./T0-1./T)-0.555*numpy.log(T/T0))
 
 def saturation_pressure_over_water(T):
        	"""Saturation pressure (Pa) over water
@@ -52,7 +52,7 @@ def saturation_pressure_over_water(T):
 
 		'T' -- Temperature (K)
 	"""
-	return es0*Numeric.exp(6808.*(1./T0-1./T)-5.09*Numeric.log(T/T0))
+	return es0*numpy.exp(6808.*(1./T0-1./T)-5.09*numpy.log(T/T0))
 
 def saturation_pressure(T):
        	"""Saturation pressure (Pa) from temperature
@@ -65,11 +65,11 @@ def saturation_pressure(T):
 
 		'T' -- Temperature (K)
 	"""
-	aT = Numeric.array(T)
+	aT = numpy.array(T)
 	# Lengthy code to avoid using Python cycles and, still, have the
 	# choice to select different formulations for ice and water surfaces
-	icemask = Numeric.less(aT,T0)
-	watermask = Numeric.logical_not(icemask)
+	icemask = numpy.less(aT,T0)
+	watermask = numpy.logical_not(icemask)
 	aTice = aT*icemask + watermask*T0
 	aTwater = aT*watermask + icemask*T0
 	spress = (saturation_pressure_over_water(aTwater)*watermask +

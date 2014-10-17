@@ -35,7 +35,6 @@ import pyclimate.mctest
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt
 import pyclimate.tools
-import Scientific.Statistics
 import sys
 
 NA = numpy.newaxis

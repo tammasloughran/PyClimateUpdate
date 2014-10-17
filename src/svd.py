@@ -22,7 +22,6 @@
 # 
 
 import numpy
-import Scientific.Statistics
 import sys
 import pyclimate.mvarstatools
 import pyclimate.pyclimateexcpt

@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-import Scientific.IO.NetCDF
+from netCDF4 import Dataset
 import numpy
 
 class nciterator:
@@ -38,7 +38,7 @@ class nciterator:
 		self.reclist=[]
 		self.totalrecs=0
 		for n in namelist:
-			nc=Scientific.IO.NetCDF.NetCDFFile(n,"r")
+			nc=Dataset(n,"r")
 			self.list.append(nc)
 			it=len(nc.variables[tvarname])
 			self.totalrecs=self.totalrecs+it

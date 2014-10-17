@@ -23,12 +23,12 @@
 import pyclimate.ncstruct 
 import pyclimate.KZFilter
 import numpy
-import Scientific.IO.NetCDF 
+from netCDF4 import Dataset 
 
 kzf=pyclimate.KZFilter.KZFilter(3,3)
 
 
-a=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+a=Dataset("cru_hgt.nc")
 
 dims=("time","Z","lat","lon")
 onc=nccopystruct("kzcruhgt.tmp.nc",a,dims,dims,dims[1:])

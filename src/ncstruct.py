@@ -24,7 +24,7 @@
 # Added function create_bare_COARDS(), JS, June 2001
 
 
-import Scientific.IO.NetCDF
+from netCDF4 import Dataset
 import numpy
 import string,sys
 import time
@@ -70,7 +70,7 @@ def nccopystruct(name,inc,dims=None,vars=None,varcontents=None):
                      contents are to be copied. They must have been previously  
                      defined in 'vars' or otherwise. Defaults to 'None'.
   """
-  onc=Scientific.IO.NetCDF.NetCDFFile(name,"w")
+  onc=Dataset(name,"w")
   # Copy the datasets global attributes and append a line to the
   # history attribute
   for key in _global_attributes(inc):
@@ -131,7 +131,7 @@ def create_bare_COARDS(ncname,tdat=None,zdat=None,latdat=None,londat=None):
                 is set to degrees_east. If 'None' (default), no zonal dimension 
                 is created.
   """
-  onc=Scientific.IO.NetCDF.NetCDFFile(ncname,"w")
+  onc=Dataset(ncname,"w")
   onc.Conventions="COARDS"
   onc.history="pyclimate.create_bare_COARDS"
   if (not tdat) and (not zdat) and (not latdat) and (not londat):

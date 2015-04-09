@@ -77,6 +77,35 @@ def deunshape(array2d, oldshape):
 	array2d.shape = oldshape
 	return array2d 
 
+def removenans(data):
+    """Removes numpy nans from an unshaped array.
+
+    Arguments:
+    data -- unshaped array.
+
+    Returns:
+    no_nan_data -- array withoy nans.
+    index -- the array indices where data exists in the original array.
+    """
+    index = numpy.where(numpy.isnan(data) == False)[0]
+    no_nan_data = data[index]
+    return no_nan_data, index
+
+def restorenans(data, shape, index):
+    """Restores nans to an array.
+
+    Arguments:
+    data -- input array.
+    shape -- shape of output array.
+    index -- indices where data exists.
+
+    Returns:
+    with_nans -- data with nans.
+    """
+    with_nans = numpy.ones(shape)*numpy.nan
+    with_nans[index] = data
+    return with_nans
+
 def getneofs(lbd, percent=70):
 	"""EOF variance percent stopping rule
 

@@ -252,17 +252,17 @@ class JDTimeHandler:
 		if listlen<3:
 			raise pex.JDTHListTooShort(listlen)
 		if listlen>=1:
-			self.jdt.year=datefields[0]
+			self.jdt.year=int(datefields[0])
 		if listlen>=2:
-			self.jdt.month=datefields[1]
+			self.jdt.month=int(datefields[1])
 		if listlen>=3:
-			self.jdt.day=datefields[2]
+			self.jdt.day=int(datefields[2])
 		if listlen>=4:
-			self.jdt.hour=datefields[3]
+			self.jdt.hour=int(datefields[3])
 		if listlen>=5:
-			self.jdt.minute=datefields[4]
+			self.jdt.minute=int(datefields[4])
 		if listlen>=6:
-			self.jdt.second=datefields[5]
+			self.jdt.second=int(datefields[5])
 		jd=pjd.date2jd(self.jdt)
 		return (jd-self.offset)/self.scalefactor
 

@@ -26,7 +26,8 @@
 import sys
 import os
 import getopt
-import Scientific.IO.NetCDF 
+#import Scientific.IO.NetCDF
+from netCDF4 import Dataset
 import numpy
 
 # Now, import pyclimate's features
@@ -160,11 +161,11 @@ def testIOASCII(ovw,nc):
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),dataf,datafdot)
   os.system("rm pepe*tmp")
-  datac=R.readdat(fname,numpy.Complex32)
-  datab=R.readdat(fname,numpy.Int16)
-  data2=R.readcol(fname,2,numpy.Int16)
-  data2c=R.readcol(fname,2,numpy.Complex64)
-  data2cdot=A.readcol(fname,2,numpy.Complex64)
+  datac=R.readdat(fname,numpy.complex64)
+  datab=R.readdat(fname,numpy.int16)
+  data2=R.readcol(fname,2,numpy.int16)
+  data2c=R.readcol(fname,2,numpy.complex128)
+  data2cdot=A.readcol(fname,2,numpy.complex128)
   item=item+1
   comparememoryvals("ASCII-READDAT %2d"%(item,),dataf,datafdot)
   data13=R.readcols(fname,(1,3))
@@ -198,7 +199,7 @@ def title(text,ovw):
   print SEPARATOR1
 
 def testIOnc(ovw):
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   dims=("time","Z","lat","lon")
   vars=dims
   vars1=dims[1:]
@@ -278,7 +279,7 @@ def testJDTime(nc,ovw):
   compareRMSvals(nc,tstr,jdarr,ovw,("doubleval",))
 
 def testJDTimeHandler(nc,ovw):
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   itime=inc.variables["time"]
   irecords=itime.shape[0]
   jdth=pyclimate.JDTimeHandler.JDTimeHandler(itime.units)
@@ -421,7 +422,7 @@ def testEOFs(nc,ov):
   compareRMSvals(nc,"chem_varfrac",varfrac,ov,("c_channels",))
   compareRMSvals(nc,"chem_north",north,ov,("c_channels",))
   # Now, a less trivial case...
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   hgtdata2=hgtdata[:,:,:,:]
   oldshape=hgtdata.shape
@@ -478,7 +479,7 @@ def testnewEOFs(nc,ov):
     compareRMSvals(nc,"chem_varfrac",varfrac,ov,("c_channels",))
     compareRMSvals(nc,"chem_north",north,ov,("c_channels",))
   # Now, a less trivial case in multichannel...
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   eofobj=pyclimate.svdeofs.SVDEOFs(hgtdata)
   pcfieldcorr=eofobj.eofsAsCorrelation()
@@ -498,7 +499,7 @@ def testnewEOFs(nc,ov):
 
 def testSVD(nc,ov):
   s=pyclimate.svd
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
   hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
@@ -562,7 +563,7 @@ def testSVD(nc,ov):
 
 def testCCA(nc,ov):
   c=pyclimate.bpcca
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
   hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   hgtdata2 = numpy.array(hgtdata[:,:,:,:])    # for multichannel test
@@ -613,7 +614,7 @@ def testCCA(nc,ov):
 
 def testdiffoperators(nc,ov):
   do=pyclimate.diffoperators
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   lats=numpy.array(inc.variables["lat"][:],'d')
   rlats=do.deg2rad(lats)
   lons=numpy.array(inc.variables["lon"][:],numpy.float64)
@@ -652,7 +653,7 @@ def testfilters(nc,ov):
   kz=pyclimate.KZFilter
   la=pyclimate.LanczosFilter
   data2D=pyclimate.readdat.readdat("ctiao.dat")
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   data3D=numpy.array(inc.variables["hgt"][:,2,0:3,4:6],numpy.float64)
   # Instances of filters
   filters={}
@@ -765,7 +766,7 @@ def testnewdiffoperators(nc,ovwr):
   # First... we need to open a more general test data set
   # with global coverage (geopotential), vectorial
   # fields (like speed) and several dimensions...
-  inc=Scientific.IO.NetCDF.NetCDFFile("testDO.nc")
+  inc=Dataset("testDO.nc")
   hvar=inc.variables["hgt"]
   uvar=inc.variables["u"]
   vvar=inc.variables["v"]
@@ -1005,7 +1006,7 @@ def testfasterMCtests(nc,ovwr):
   print "Monte Carlo test on EOFs..."
   print "*"*50
   eof=pyclimate.svdeofs
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
   newshape=(oldshape[0],oldshape[1]*oldshape[2])
@@ -1025,7 +1026,7 @@ def testfasterMCtests(nc,ovwr):
   print "Monte Carlo test on SVD..."
   print "*"*50
   s=pyclimate.svd
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   # Geopotential height in a reduced domain around the Iberian Peninsula
   hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   oldshape=hgtdata.shape
@@ -1050,7 +1051,7 @@ def testfasterMCtests(nc,ovwr):
 def testanalogs(nc,ov):
   SMOOTHING=2
   BASESAMPLES=10
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   hgtdata=numpy.array(inc.variables["hgt"][:,:,:,:],numpy.float64)
   hgtbase=numpy.array(hgtdata[-BASESAMPLES:,:,:,:])
   hgtdata=numpy.array(hgtdata[:-BASESAMPLES,:,:,:])
@@ -1067,7 +1068,7 @@ def testanalogs(nc,ov):
   inc.close()
 
 def testNHArray(nc,ov):
-  inc=Scientific.IO.NetCDF.NetCDFFile("cru_hgt.nc")
+  inc=Dataset("cru_hgt.nc")
   hgtdata=numpy.array(inc.variables["hgt"][:,1,:,:],numpy.float64)
   inc.close()
   samples = len(hgtdata)
@@ -1144,7 +1145,7 @@ if __name__=="__main__":
   # create it, first, otherwise, just open it for reading
   refname="reference.cdf"
   if overwrite:
-    nc=Scientific.IO.NetCDF.NetCDFFile(refname,"w")
+    nc=Dataset(refname,"w")
     nc.version=sys.version
     nc.platform=sys.platform
     if 'byteorder' in dir(sys):
@@ -1179,7 +1180,7 @@ if __name__=="__main__":
         print "without the reference file"
         print "Retrieve:",theurl," manually"
         sys.exit(1)
-    nc=Scientific.IO.NetCDF.NetCDFFile(refname)
+    nc=Dataset(refname)
     print "Reference NetCDF File %s created by:"%(refname,)
     if 'version' in dir(nc):
       print "Version:",nc.version

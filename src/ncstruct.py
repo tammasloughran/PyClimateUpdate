@@ -86,11 +86,11 @@ def nccopystruct(name,inc,dims=None,vars=None,varcontents=None):
   # Copy each of the dimensions in the input array
   if dims:
     for dim in dims:
-      onc.createDimension(dim,inc.dimensions[dim])
+      onc.createDimension(dim,len(inc.dimensions[dim]))
   if vars:
     for var in vars:
       invar=inc.variables[var]
-      ovar=onc.createVariable(var,invar.typecode(),invar.dimensions)
+      ovar=onc.createVariable(var,invar.dtype,invar.dimensions)
       for key in _variable_attributes(inc,var):
         setattr(ovar,key,getattr(invar,key))
   if varcontents:

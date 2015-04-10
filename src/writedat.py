@@ -53,7 +53,7 @@ def writedat(fname, matrix, header="", formatstring="%g"):
   """
   theshape=matrix.shape
   tcode=matrix.dtype.char
-  iscomplex=(tcode==numpy.complex or tcode==numpy.complex64)
+  iscomplex=(tcode==numpy.complex or tcode==numpy.complex64 or tcode=='D')
   formatstring = formatstring.strip()
   if len(theshape)>2:
     raise pyclimate.pyclimateexcpt.WrongWriteDimensions(len(theshape))

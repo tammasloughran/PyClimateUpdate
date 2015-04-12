@@ -294,11 +294,8 @@ class ANALOGSelector:
     ave = numpy.zeros((self.patternlenght,)+field.shape[1:], 'd')
     for i in range(self.smoothing):
       ave = (ave + 
-        numpy.take(field,aanalogrecords[i::self.smoothing]) *
-        numpy.reshape(
-          self.weights[:,i],
-          (self.patternlenght,)+len(field.shape[1:])*(1,)
-        )
+        numpy.take(field,aanalogrecords[i::self.smoothing],0) *
+        numpy.reshape(self.weights[:,i], (self.patternlenght,)+len(field.shape[1:])*(1,))
       )
     return ave 
    

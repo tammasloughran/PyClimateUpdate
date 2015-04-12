@@ -82,9 +82,9 @@ def congruence(p1,p2):
   dimensions are found it returns an array with the congruence
   along the first dimension.
 	"""
-	norm1=numpy.sqrt(numpy.add.reduce(p1*p1))
-	norm2=numpy.sqrt(numpy.add.reduce(p2*p2))
-	crossdot=numpy.add.reduce(p1*p2)
+	norm1=numpy.sqrt(numpy.add.reduce(numpy.multiply(p1,p1)))
+	norm2=numpy.sqrt(numpy.add.reduce(numpy.multiply(p2,p2)))
+	crossdot=numpy.add.reduce(numpy.multiply(p1,p2))
 	return crossdot/norm1/norm2
 
 def detrend(dataset,tvalues,order=1):

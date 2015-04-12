@@ -177,8 +177,8 @@ def heterogeneousmaps(xdata,ycoefs):
 
 def _getsubset(ldata,rdata,ielems):
 	seq=mctest.getrandomsubsample(ielems,len(ldata))
-        subl=numpy.take(ldata,seq)
-        subr=numpy.take(rdata,seq)
+        subl=numpy.take(ldata,seq,0)
+        subr=numpy.take(rdata,seq,0)
         return subl,subr
 
 def makemctest(Umaster,Vmaster,ldata,rdata,itimes,ielems):

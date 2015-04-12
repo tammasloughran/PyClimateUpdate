@@ -628,8 +628,8 @@ def testdiffoperators(nc,ov):
   kgeo=g/2/omega/numpy.sin(rlats)
   # Geostrophic wind
   thegrad=grad.hgradient(hdata)
-  u=-kgeo[:,numpy.NewAxis]*thegrad[1]
-  v=kgeo[:,numpy.NewAxis]*thegrad[0]
+  u=-kgeo[:,numpy.newaxis]*thegrad[1]
+  v=kgeo[:,numpy.newaxis]*thegrad[0]
   # Gradient of the geostrophic wind (mostly harmless...)
   thediv=div.hdivergence(u,v)
   # Curl of the geostrophic wind

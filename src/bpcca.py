@@ -127,8 +127,8 @@ class BPCCA:
 
   def varianceFractions(self):
     "Returns a tuple with the left and right patterns explained variance fraction"
-    vars = numpy.add.reduce(self.p * self.p)
-    varz = numpy.add.reduce(self.q * self.q)
+    vars = numpy.add.reduce(numpy.multiply(self.p,self.p))
+    varz = numpy.add.reduce(numpy.multiply(self.q,self.q))
     return (
       vars / self.sPCA.totalAnomalyVariance(), 
       varz / self.zPCA.totalAnomalyVariance()

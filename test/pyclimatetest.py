@@ -26,7 +26,6 @@
 import sys
 import os
 import getopt
-#import Scientific.IO.NetCDF
 from netCDF4 import Dataset
 import numpy
 

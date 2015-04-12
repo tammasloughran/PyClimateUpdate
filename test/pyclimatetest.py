@@ -85,7 +85,7 @@ def compareRMSvals(nc,varname,val,ovwr,dims,optlabel=""):
     except:
       return
     itimes=len(residual.shape)
-    res2=residual*residual
+    res2=numpy.multiply(residual,residual)
     nshape=numpy.array(val.shape)
     N=numpy.multiply.reduce(nshape)
     rms=numpy.sqrt(numpy.add.reduce(numpy.ravel(res2))/N)

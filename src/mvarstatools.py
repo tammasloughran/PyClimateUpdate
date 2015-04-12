@@ -52,7 +52,7 @@ def center(dataset):
 def standardize(dataset):
 	"Standardized (centered and unit variance) version of an array"
 	residual=center(dataset)
-	std=numpy.sqrt(numpy.add.reduce(residual*residual)/float(len(residual)))
+	std=numpy.sqrt(numpy.add.reduce(numpy.multiply(residual,residual))/float(len(residual)))
 	return numpy.array(residual)/std
 
 def covariancematrix(X,Y):

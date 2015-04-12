@@ -262,7 +262,7 @@ class JDTimeHandler:
 		if listlen>=5:
 			self.jdt.minute=int(datefields[4])
 		if listlen>=6:
-			self.jdt.second=int(datefields[5])
+			self.jdt.second=datefields[5]
 		jd=pjd.date2jd(self.jdt)
 		return (jd-self.offset)/self.scalefactor
 

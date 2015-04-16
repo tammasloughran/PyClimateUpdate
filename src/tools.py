@@ -52,8 +52,11 @@ def unshape(arraynd, spacelast=1):
     'oldshape' -- Is the shape (a tuple) of <arraynd>. It'll be needed to 
                   recover the shape with <deunshape()>.
   """
-	arraynd = numpy.array(arraynd)
-	oldshape = arraynd.shape
+        try:
+            oldshape = arraynd.shape
+        except AttributeError:
+	    arraynd = numpy.array(arraynd)
+	    oldshape = arraynd.shape
 	if spacelast:
 		taillen = numpy.multiply.reduce(oldshape[1:])
 		arraynd.shape = (oldshape[0], taillen)
@@ -77,33 +80,65 @@ def deunshape(array2d, oldshape):
 	array2d.shape = oldshape
 	return array2d 
 
-def removenans(data):
-    """Removes numpy nans from an unshaped array.
+def checkvalidnans(data):
+    """Check that NaNs or mask in a dataset are valid for SVD.
+
+    NaNs can only exist for all samples of a given channel. Data may be
+    masked or simply have nans.
 
     Arguments:
-    data -- unshaped array.
+    data -- dataset to check.
 
     Returns:
-    no_nan_data -- array withoy nans.
-    index -- the array indices where data exists in the original array.
+    has_nan -- True if data has NaNs in it.
     """
-    index = numpy.where(numpy.isnan(data) == False)[0]
-    no_nan_data = data[index]
-    return no_nan_data, index
+    try:
+        nan_values = data.mask
+        nan_values = numpy.isnan(data.data)|nan_values
+    except AttributeError:
+        nan_values = numpy.isnan(data)
+    has_nan = numpy.invert(numpy.all(nan_values==False))
+    if has_nan:
+        nans_in_channel = nan_values.any(axis=0)
+        all_are_nan = nan_values.all(axis=0)
+        channel_valid = nans_in_channel==all_are_nan
+        if not channel_valid.all():
+            invalid_channels = numpy.where(channel_valid==False)
+            raise InvalidNaNs(invalCid_channels)
+    return has_nan
 
-def restorenans(data, shape, index):
+def removenans(data):
+    """Removes columns that have valid NaNs from an unshaped array.
+
+    unshape() and checkvalidnans() MUST be applied before using this function.
+
+    Arguments:
+    data -- unshaped array. May be a masked array or simply have NaNs.
+
+    Returns:
+    no_nan_data -- array withot NaNs.
+    no_nan_cols -- columns that were not removed from the original matrix.
+    """
+    try:
+        no_nan_cols = numpy.where(data.mask.any(axis=0)==False)[0]
+    except AttributeError:
+        no_nan_cols = numpy.where(numpy.isnan(data).any(axis=0)==False)[0]
+    no_nan_data = data[:,no_nan_cols]
+    return no_nan_data, no_nan_cols
+
+def restorenans(data, shape, cols):
     """Restores nans to an array.
 
     Arguments:
     data -- input array.
     shape -- shape of output array.
-    index -- indices where data exists.
+    cols -- columns where data exists.
 
     Returns:
-    with_nans -- data with nans.
+    with_nans -- data with NaNs.
     """
-    with_nans = numpy.ones(shape)*numpy.nan
-    with_nans[index] = data
+    with_nans = numpy.ma.ones(shape)*numpy.nan
+    with_nans[cols,:] = data
     return with_nans
 
 def getneofs(lbd, percent=70):

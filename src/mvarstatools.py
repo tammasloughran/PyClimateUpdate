@@ -46,8 +46,8 @@ def mm(array1,array2):
 
 def center(dataset):
 	"Returns a centered version (mean along _first_ axis removed) of an array"
-	theaverage=(numpy.add.reduce(dataset))/float(len(dataset))
-	return (numpy.array(dataset)-theaverage)
+	theaverage=dataset.mean(axis=0)
+	return (dataset-theaverage)
 
 def standardize(dataset):
 	"Standardized (centered and unit variance) version of an array"

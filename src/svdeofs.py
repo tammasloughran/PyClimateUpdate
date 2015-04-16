@@ -57,8 +57,7 @@ pex = pyclimate.pyclimateexcpt
 #                                          L  (pxp)
 #                                          E  (mxp)
 def svdeofs(dataset, pcscaling=0):
-  """\
-  Calculates de EOF decomposition of a field.
+  """Calculates de EOF decomposition of a field.
   
   Arguments:
 
@@ -78,6 +77,10 @@ def svdeofs(dataset, pcscaling=0):
   field2d = len(dataset.shape)==2
   if not field2d:
     residual, oldshape = ptools.unshape(residual)
+  newshape = residual.shape
+  has_nan = ptools.checkvalidnans(residual)
+  if has_nan:
+      residual, cols = ptools.removenans(residual)
   A,Lh,E = SVD(residual,full_matrices=0)
   # The eigenvalues from SVD routines are powered to 1/2, thus: square
   # the vector.
@@ -109,6 +112,8 @@ def svdeofs(dataset, pcscaling=0):
     pcs = pcs / numpy.sqrt(L)[NA,:]
   else:
     raise pex.ScalingError(pcscaling)
+  if has_nan:
+    E = ptools.restorenans(E, (newshape[1],E.shape[-1]), cols)
   if not field2d:
     E = ptools.deunshape(E, oldshape[1:]+E.shape[-1:])
   return pcs,L,E

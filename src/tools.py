@@ -59,10 +59,10 @@ def unshape(arraynd, spacelast=1):
 	    oldshape = arraynd.shape
 	if spacelast:
 		taillen = numpy.multiply.reduce(oldshape[1:])
-		arraynd.shape = (oldshape[0], taillen)
+		arraynd = arraynd.reshape((oldshape[0], taillen))
 	else:
 		headlen = numpy.multiply.reduce(oldshape[:-1])
-		arraynd.shape = (headlen, oldshape[-1])
+		arraynd = arraynd.reshape((headlen, oldshape[-1]))
 	return arraynd, oldshape
 
 def deunshape(array2d, oldshape):
@@ -77,8 +77,8 @@ def deunshape(array2d, oldshape):
   Returns the array with the specified shape.
   """
 	array2d = numpy.array(array2d)
-	array2d.shape = oldshape
-	return array2d 
+	array_reshaped = array2d.reshape(oldshape)
+	return array_reshaped
 
 def checkvalidnans(data):
     """Check that NaNs or mask in a dataset are valid for SVD.

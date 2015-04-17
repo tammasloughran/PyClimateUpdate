@@ -252,14 +252,16 @@ class SVDEOFs:
     has_nan = ptools.checkvalidnans(residual)
     if has_nan:
         residual, cols = ptools.removenans(residual)
-    A,Lh,E = SVD(residual,full_matrices=0)
+    A,Lh,Et = SVD(residual,full_matrices=0)
     normfactor = float(len(residual))
     self.L = self.lambdas = Lh*Lh/normfactor
     self.neofs = len(self.L)
-    self.flatE = numpy.transpose(E)
+    self.compactE = numpy.transpose(Et)
     if has_nan:
-        self.flatE = ptools.restorenans(self.flatE,
-                (newshape[1],self.flatE.shape[-1]), cols)
+        self.flatE = ptools.restorenans(self.compactE,
+                (newshape[1],self.compactE.shape[-1]), cols)
+    else:
+        self.flatE = self.compactE
     self.E = ptools.deunshape(self.flatE, self.originalshape+(self.neofs,))
     self.P = A*Lh
 
@@ -337,7 +339,7 @@ class SVDEOFs:
   def reconstructedField(self, neofs):
     "Reconstructs the original field using 'neofs' EOFs"
     rval = mm(self.P[:,:neofs], numpy.transpose(self.flatE[:,:neofs]))
-    rval.shape = self.dataset.shape
+    rval = numpy.array(rval).reshape(self.dataset.shape)
     return rval
 
   def unreconstructedField(self,neofs,X=None):
@@ -352,14 +354,21 @@ class SVDEOFs:
       'X' -- The field to try to reconstruct. Defaults to the data field
              used to derive the EOFs.
     """
-    myX = X or self.dataset
+    if X==None:
+        myX = self.dataset
+    else:
+        myX = X
     rval = self.projectField(neofs, myX)
-    rval = myX - mm(rval, numpy.transpose(self.flatE[:,:neofs]))
-    return rval
+    oldshape = myX.shape
+    rval = ptools.unshape(myX)[0] - mm(rval, numpy.transpose(self.flatE[:,:neofs]))
+    return ptools.deunshape(rval,oldshape)
 
   def projectField(self,neofs,X=None):
     "Projects a field 'X' onto the 'neofs' leading EOFs returning its coordinates in the EOF-space"
-    myX = X or self.dataset
+    if X==None:
+        myX = self.dataset
+    else:
+        myX = X
     Xdot, oshape = ptools.unshape(myX)
     return mm(Xdot[:,:],self.flatE[:,:neofs])
 
@@ -443,9 +452,9 @@ class SVDEOFs:
     theccoefs = numpy.zeros((subsamples,neofs),'d')
     for isample in xrange(subsamples):
       subslist = mctest.getrandomsubsample(length,self.records)
-      SVDEOFsobj = SVDEOFs(numpy.take(self.dataset,subslist))
-      eofdot = SVDEOFsobj.eofs()[...,:neofs]
-      thiseofs = self.eofs()[...,:neofs]
+      SVDEOFsobj = SVDEOFs(numpy.take(self.dataset,subslist, axis=0))
+      eofdot = SVDEOFsobj.compactE[...,:neofs]
+      thiseofs = self.compactE[...,:neofs]
       for ieof in xrange(neofs):
         theccoefs[isample,ieof] = pmvstools.congruence(
           eofdot[...,ieof],thiseofs[...,ieof]

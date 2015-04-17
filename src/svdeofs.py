@@ -248,11 +248,18 @@ class SVDEOFs:
     residual = pmvstools.center(dataset)
     if not self.field2d:
       residual = ptools.unshape(residual)[0]
+    newshape = residual.shape
+    has_nan = ptools.checkvalidnans(residual)
+    if has_nan:
+        residual, cols = ptools.removenans(residual)
     A,Lh,E = SVD(residual,full_matrices=0)
     normfactor = float(len(residual))
     self.L = self.lambdas = Lh*Lh/normfactor
     self.neofs = len(self.L)
     self.flatE = numpy.transpose(E)
+    if has_nan:
+        self.flatE = ptools.restorenans(self.flatE,
+                (newshape[1],self.flatE.shape[-1]), cols)
     self.E = ptools.deunshape(self.flatE, self.originalshape+(self.neofs,))
     self.P = A*Lh
 

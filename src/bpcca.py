@@ -38,6 +38,7 @@ import pyclimate.mctest
 import pyclimate.NHArray
 import pyclimate.pyclimateexcpt
 import numpy
+import pdb
 
 ptools = pyclimate.tools
 mtools = pyclimate.mvarstatools
@@ -84,9 +85,17 @@ class BPCCA:
     self.sfield2d = len(leftfield.shape)==2
     if not self.sfield2d:
       leftfield, self.oldsshape = ptools.unshape(leftfield)
+    self.snewshape = leftfield.shape
+    self.shas_nan = ptools.checkvalidnans(leftfield)
+    if self.shas_nan:
+        leftfield, self.scols = ptools.removenans(leftfield)
     self.zfield2d = len(rightfield.shape)==2
     if not self.zfield2d:
       rightfield, self.oldzshape = ptools.unshape(rightfield)
+    self.znewshape = rightfield.shape
+    self.zhas_nan = ptools.checkvalidnans(rightfield)
+    if self.zhas_nan:
+        rightfield, self.zcols = ptools.removenans(rightfield)
     # First the PCA pre-filter
     self.sPCA = pyclimate.svdeofs.SVDEOFs(numpy.array(leftfield, 'd'))
     self.zPCA = pyclimate.svdeofs.SVDEOFs(numpy.array(rightfield, 'd'))
@@ -136,17 +145,25 @@ class BPCCA:
 
   def leftPatterns(self):
     "Returns (along the _last_ dimension) the left canonical patterns"
-    if self.sfield2d:
-      return numpy.array(self.p)
+    if self.shas_nan:
+        flatp = ptools.restorenans(self.p, (self.snewshape[1],self.p.shape[1]), self.scols)
     else:
-      return ptools.deunshape(self.p, self.oldsshape[1:]+self.p.shape[-1:])
+        flatp = self.p
+    if self.sfield2d:
+      return numpy.array(flatp)
+    else:
+      return ptools.deunshape(flatp, self.oldsshape[1:]+flatp.shape[-1:])
 
   def rightPatterns(self):
     "Returns (along the _last_ dimension) the right canonical patterns"
-    if self.zfield2d:
-      return numpy.array(self.q)
+    if self.zhas_nan:
+        flatq = ptools.restorenans(self.q, (self.znewshape[1],self.q.shape[1]), self.zcols)
     else:
-      return ptools.deunshape(self.q, self.oldzshape[1:]+self.q.shape[-1:])
+        flatq = self.q
+    if self.zfield2d:
+      return numpy.array(flatq)
+    else:
+      return ptools.deunshape(flatq, self.oldzshape[1:]+flatq.shape[-1:])
 
   def leftAdjointPatterns(self):
     "Returns (along the _last_ dimension) the left adjoint canonical patterns"

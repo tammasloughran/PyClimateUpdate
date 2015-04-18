@@ -38,7 +38,6 @@ import pyclimate.mctest
 import pyclimate.NHArray
 import pyclimate.pyclimateexcpt
 import numpy
-import pdb
 
 ptools = pyclimate.tools
 mtools = pyclimate.mvarstatools
@@ -256,14 +255,15 @@ class BPCCA:
         print "  %d more runs to go..." % (subsamples-isample,)
       sublist = pyclimate.mctest.getrandomsubsample(length,self.records)
       subbpcca = BPCCA(
-        numpy.take(self.s,sublist), 
-        numpy.take(self.z,sublist),
+        numpy.take(self.s,sublist,axis=0), 
+        numpy.take(self.z,sublist,axis=0),
         self.retainedeofs
       )
       congrusign = mtools.congruence(subbpcca.p, self.p)
-      congrusign = -1 * numpy.less(congrusign,0) + numpy.greater(congrusign,0)
-      lnha.Update(numpy.ravel(subbpcca.p * congrusign[NA,:]))
-      rnha.Update(numpy.ravel(subbpcca.q * congrusign[NA,:]))
+      congrusign = numpy.array(-1 * numpy.less(congrusign,0) + numpy.greater(congrusign,0))
+      congrusign = numpy.ones([length,length])*congrusign.squeeze()
+      lnha.Update(numpy.ravel(subbpcca.p * congrusign))
+      rnha.Update(numpy.ravel(subbpcca.q * congrusign))
     lthres = lnha.GetRange(prob) 
     rthres = rnha.GetRange(prob) 
     ldelta = lnha.GetDeltaX()
@@ -294,8 +294,6 @@ class BPCCA:
       rmask.shape = theshape
     return lmask, rmask
 
-
-
   def MCTest(self,subsamples,length):
     """Monte Carlo test for the temporal stability of the canonical patterns.
 
@@ -315,8 +313,8 @@ class BPCCA:
     for isample in xrange(subsamples):
       sublist = pyclimate.mctest.getrandomsubsample(length,self.records)
       subbpcca = BPCCA(
-        numpy.take(self.s,sublist), 
-        numpy.take(self.z,sublist),
+        numpy.take(self.s,sublist,axis=0), 
+        numpy.take(self.z,sublist,axis=0),
         self.retainedeofs
       )
       if self.n0 != 1:
@@ -347,8 +345,8 @@ class BPCCA:
       sublists = numpy.random.permutation(self.records)
       sublistz = numpy.random.permutation(self.records)
       subbpcca = BPCCA(
-        numpy.take(self.s,sublists), 
-        numpy.take(self.z,sublistz),
+        numpy.take(self.s,sublists,axis=0), 
+        numpy.take(self.z,sublistz,axis=0),
         self.retainedeofs
       )
       if self.n0 != 1:

@@ -31,7 +31,7 @@ kzf=pyclimate.KZFilter.KZFilter(3,3)
 a=Dataset("cru_hgt.nc")
 
 dims=("time","Z","lat","lon")
-onc=nccopystruct("kzcruhgt.tmp.nc",a,dims,dims,dims[1:])
+onc=pyclimate.ncstruct.nccopystruct("kzcruhgt.tmp.nc",a,dims,dims,dims[1:])
 onc.history=""
 kzhgt=onc.createVariable("kzhgt",numpy.int16,dims)
 kzhgt.longname="Filtered geopotential - KZ(%3d,%3d) - Cutoff frequency:%10.6f"\

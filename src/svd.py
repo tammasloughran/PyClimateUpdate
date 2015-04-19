@@ -54,26 +54,38 @@ def svd(sfield,zfield):
 
     'Q' -- The right singular vectors
 	"""
-	if len(sfield)!=len(zfield):
-		raise excpt.SVDLengthException(len(sfield),len(zfield))
-	sfield2d = len(sfield.shape)==2
-	if not sfield2d:
-		sfield, oldsshape = tools.unshape(sfield)
-	zfield2d = len(zfield.shape)==2
-	if not zfield2d:
-		zfield, oldzshape = tools.unshape(zfield)
-	csz=mt.covariancematrix(sfield,zfield)
-	P,sigma,Qt=numpy.linalg.svd(csz,full_matrices=0)
-	Q=numpy.transpose(Qt)
-	# Returns:
-	# P -> Left singular vectors
-	# sigma -> Covariances of each of the modes
-	# Q -> Right singular vectors (Already transposed!!!)
-	if not sfield2d:
-		P = tools.deunshape(P, oldsshape[1:]+P.shape[-1:])
-	if not zfield2d:
-		Q = tools.deunshape(Q, oldzshape[1:]+Q.shape[-1:])
-	return P,sigma,Q
+    if len(sfield)!=len(zfield):
+	raise excpt.SVDLengthException(len(sfield),len(zfield))
+    sfield2d = len(sfield.shape)==2
+    if not sfield2d:
+        sfield, oldsshape = tools.unshape(sfield)
+    snewshape = leftfield.shape
+    shas_nan = tools.checkvalidnans(leftfield)
+    if shas_nan:
+        leftfield, scols = tools.removenans(leftfield)
+    zfield2d = len(zfield.shape)==2
+    if not zfield2d:
+        zfield, oldzshape = tools.unshape(zfield)
+    znewshape = rightfield.shape
+    zhas_nan = tools.checkvalidnans(rightfield)
+    if zhas_nan:
+        rightfield, zcols = ptools.removenans(rightfield)
+    csz=mt.covariancematrix(sfield,zfield)
+    P,sigma,Qt=numpy.linalg.svd(csz,full_matrices=0)
+    Q=numpy.transpose(Qt)
+    # Returns:
+    # P -> Left singular vectors
+    # sigma -> Covariances of each of the modes
+    # Q -> Right singular vectors (Already transposed!!!)
+    if shas_nan:
+        P = tools.restorenans(P, (self.snewshape[1],P.shape[1]), scols)
+    if not sfield2d:
+        P = tools.deunshape(P, oldsshape[1:]+P.shape[-1:])
+    if zhas_nan:
+        Q = tools.restorenans(Q, (znewshape[1],Q.shape[1]), zcols)
+    if not zfield2d:
+    	Q = tools.deunshape(Q, oldzshape[1:]+Q.shape[-1:])
+    return P,sigma,Q
 
 def SCF(sigmas):
         """Get the squared covariance fraction of the modes

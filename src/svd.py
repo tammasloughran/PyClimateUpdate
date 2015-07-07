@@ -38,38 +38,37 @@ def mm(array1,array2):
   return numpy.matrix(array1)*numpy.matrix(array2)
 
 def svd(sfield,zfield):
-	"""Given two fields, get the SVD of their covariance matrix.
+    """Given two fields, get the SVD of their covariance matrix.
 
-  Arguments:
+    Arguments:
 
     'sfield' -- Input left field
 
     'zfield' -- Input right field
 
-  Returns a tuple (P,S,Q) with:
+    Returns a tuple (P,S,Q) with:
 
     'P' -- The left singular vectors.
  
     'S' -- The covariance of each of the modes.
 
-    'Q' -- The right singular vectors
-	"""
+    'Q' -- The right singular vectors"""
     if len(sfield)!=len(zfield):
-	raise excpt.SVDLengthException(len(sfield),len(zfield))
+        raise excpt.SVDLengthException(len(sfield),len(zfield))
     sfield2d = len(sfield.shape)==2
     if not sfield2d:
         sfield, oldsshape = tools.unshape(sfield)
-    snewshape = leftfield.shape
-    shas_nan = tools.checkvalidnans(leftfield)
+    snewshape = sfield.shape
+    shas_nan = tools.checkvalidnans(sfield)
     if shas_nan:
-        leftfield, scols = tools.removenans(leftfield)
+        sfield, scols = tools.removenans(sfield)
     zfield2d = len(zfield.shape)==2
     if not zfield2d:
         zfield, oldzshape = tools.unshape(zfield)
-    znewshape = rightfield.shape
-    zhas_nan = tools.checkvalidnans(rightfield)
+    znewshape = zfield.shape
+    zhas_nan = tools.checkvalidnans(zfield)
     if zhas_nan:
-        rightfield, zcols = ptools.removenans(rightfield)
+        zfield, zcols = ptools.removenans(zfield)
     csz=mt.covariancematrix(sfield,zfield)
     P,sigma,Qt=numpy.linalg.svd(csz,full_matrices=0)
     Q=numpy.transpose(Qt)

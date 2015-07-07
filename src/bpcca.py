@@ -225,7 +225,7 @@ class BPCCA:
                    to stdout to follow the runs of the test. Defaults to 0.
 
     Returns a tuple with the left and right masks with the significant
-    grid points of the canonical patterns.
+    grid points of the canonical patterns. A value of 0 indicates significance.
     
     The range for the histograms is calculated from the range of the 
     *master* canonical patterns by extending it a 30%. This extension
@@ -250,6 +250,10 @@ class BPCCA:
     xup = xup + extens
     rnha = pyclimate.NHArray.NHArray(xlow, xup, nbins, rdim)
     if verbose: print "Monte Carlo test (%d runs)" % subsamples
+    if not self.retainedeofs:
+        nretain = (self.n1,self.n2)
+    else:
+        nretain = self.retainedeofs
     for isample in xrange(subsamples):
       if verbose and not isample % (subsamples/20): 
         print "  %d more runs to go..." % (subsamples-isample,)
@@ -257,13 +261,14 @@ class BPCCA:
       subbpcca = BPCCA(
         numpy.take(self.s,sublist,axis=0), 
         numpy.take(self.z,sublist,axis=0),
-        self.retainedeofs
+        nretain
       )
       congrusign = mtools.congruence(subbpcca.p, self.p)
       congrusign = numpy.array(-1 * numpy.less(congrusign,0) + numpy.greater(congrusign,0))
-      congrusign = numpy.ones([length,length])*congrusign.squeeze()
-      lnha.Update(numpy.ravel(subbpcca.p * congrusign))
-      rnha.Update(numpy.ravel(subbpcca.q * congrusign))
+      lnha.Update(numpy.ravel(numpy.array(subbpcca.p) * numpy.array(congrusign)))
+      congrusign = mtools.congruence(subbpcca.q, self.q)
+      congrusign = numpy.array(-1 * numpy.less(congrusign,0) + numpy.greater(congrusign,0))
+      rnha.Update(numpy.ravel(numpy.array(subbpcca.q) * numpy.array(congrusign)))
     lthres = lnha.GetRange(prob) 
     rthres = rnha.GetRange(prob) 
     ldelta = lnha.GetDeltaX()
@@ -274,8 +279,14 @@ class BPCCA:
     lmask = lmask * numpy.less(numpy.ravel(self.p), lthres[:,1]-ldelta)
     rmask = numpy.greater(numpy.ravel(self.q), rthres[:,0]+rdelta)
     rmask = rmask * numpy.less(numpy.ravel(self.q), rthres[:,1]-rdelta)
-    for i in range(len(numpy.ravel(self.p))):
-      print "%7.2f <%7.2f> %7.2f | %d" % (lthres[i,0], rp[i],lthres[i,1], lmask[i])
+    lmask = lmask.reshape(self.p.shape)
+    rmask = rmask.reshape(self.q.shape)
+    if self.shas_nan:
+        lmask = ptools.restorenans(lmask, (self.snewshape[1],self.p.shape[1]), self.scols)
+    if self.shas_nan:
+        rmask = ptools.restorenans(rmask, (self.znewshape[1],self.q.shape[1]), self.zcols)
+    #for i in range(len(numpy.ravel(self.p))):
+    #  print "%7.2f <%7.2f> %7.2f | %d" % (lthres[i,0], rp[i],lthres[i,1], lmask[i])
     if not self.sfield2d:
       theshape = self.oldsshape[1:] + (self.n0,)
       print theshape
@@ -309,13 +320,17 @@ class BPCCA:
     those obtained for the whole dataset.
     """
     theleftccoefs = numpy.zeros((subsamples,)+(self.n0,), 'd')  
-    therightccoefs = numpy.zeros((subsamples,)+(self.n0,), 'd')  
+    therightccoefs = numpy.zeros((subsamples,)+(self.n0,), 'd') 
+    if not self.retainedeofs:
+        nretain = (self.n1,self.n2)
+    else:
+        nretain = self.retainedeofs
     for isample in xrange(subsamples):
       sublist = pyclimate.mctest.getrandomsubsample(length,self.records)
       subbpcca = BPCCA(
         numpy.take(self.s,sublist,axis=0), 
         numpy.take(self.z,sublist,axis=0),
-        self.retainedeofs
+        nretain
       )
       if self.n0 != 1:
         theleftccoefs[isample,:] = mtools.congruence(subbpcca.p, self.p)
@@ -340,14 +355,18 @@ class BPCCA:
     Returns a Numpy array which columns are the different canonical 
     correlations for each MC run.
     """
-    thecorrs = numpy.zeros((samples,)+(self.n0,), 'd')  
+    thecorrs = numpy.zeros((samples,)+(self.n0,), 'd') 
+    if not self.retainedeofs:
+        nretain = (self.n1,self.n2)
+    else:
+        nretain = self.retainedeofs
     for isample in xrange(samples):
       sublists = numpy.random.permutation(self.records)
       sublistz = numpy.random.permutation(self.records)
       subbpcca = BPCCA(
         numpy.take(self.s,sublists,axis=0), 
         numpy.take(self.z,sublistz,axis=0),
-        self.retainedeofs
+        nretain
       )
       if self.n0 != 1:
         thecorrs[isample,:] = subbpcca.corr[:]

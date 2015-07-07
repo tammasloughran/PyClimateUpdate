@@ -126,8 +126,8 @@ class InvalidNaNs(PyClimateException):
         def __init__(self,channels):
                 self.message = """There are invalid NaNs in the dataset.\n
                     NaNs can only exist for all samples of a given channel.\n
-                    Channels that have invalid NaNs are:"""
-                self.value = channels
+                    Channels that have invalid NaNs are:\n
+                    %d"""%(channels)
 
 
 ###############################################

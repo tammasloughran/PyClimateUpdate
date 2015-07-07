@@ -104,7 +104,7 @@ def checkvalidnans(data):
         channel_valid = nans_in_channel==all_are_nan
         if not channel_valid.all():
             invalid_channels = numpy.where(channel_valid==False)
-            raise InvalidNaNs(invalCid_channels)
+            raise excpt.InvalidNaNs(invalid_channels)
     return has_nan
 
 def removenans(data):

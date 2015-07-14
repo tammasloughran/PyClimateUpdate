@@ -166,21 +166,29 @@ class BPCCA:
 
   def leftAdjointPatterns(self):
     "Returns (along the _last_ dimension) the left adjoint canonical patterns"
+    if self.shas_nan:
+        flatp = ptools.restorenans(self.p_adjoint, (self.snewshape[1],self.p.shape[1]), self.scols)
+    else:
+        flatp = self.p_adjoint
     if self.sfield2d:
-      return numpy.array(self.p_adjoint)
+      return numpy.array(flatp)
     else:
       return ptools.deunshape(
-        self.p_adjoint, 
+        flatp, 
         self.oldsshape[1:] + self.p_adjoint.shape[-1:]
       )
 
   def rightAdjointPatterns(self):
     "Returns (along the _last_ dimension) the right adjoint canonical patterns"
+    if self.shas_nan:
+        flatq = ptools.restorenans(self.q_adjoint, (self.znewshape[1],self.q.shape[1]), self.zcols)
+    else:
+        flatq = self.q_adjoint
     if self.zfield2d:
-      return numpy.array(self.q_adjoint)
+      return numpy.array(flatq)
     else:
       return ptools.deunshape(
-        self.q_adjoint, 
+        flatq, 
         self.oldzshape[1:] + self.q_adjoint.shape[-1:]
       )
 
@@ -283,25 +291,21 @@ class BPCCA:
     rmask = rmask.reshape(self.q.shape)
     if self.shas_nan:
         lmask = ptools.restorenans(lmask, (self.snewshape[1],self.p.shape[1]), self.scols)
-    if self.shas_nan:
+    if self.zhas_nan:
         rmask = ptools.restorenans(rmask, (self.znewshape[1],self.q.shape[1]), self.zcols)
     #for i in range(len(numpy.ravel(self.p))):
     #  print "%7.2f <%7.2f> %7.2f | %d" % (lthres[i,0], rp[i],lthres[i,1], lmask[i])
     if not self.sfield2d:
       theshape = self.oldsshape[1:] + (self.n0,)
-      print theshape
       lmask.shape = theshape
     else:
       theshape = (self.p.shape[0], self.n0)
-      print theshape
       lmask.shape = theshape
     if not self.zfield2d:
       theshape = self.oldzshape[1:] + (self.n0,)
-      print theshape
       rmask.shape = theshape
     else:
       theshape = (self.q.shape[0], self.n0)
-      print theshape
       rmask.shape = theshape
     return lmask, rmask
 
